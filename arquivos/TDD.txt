@@ -1,0 +1,161 @@
+TDD
+
+🏗️ O que é TDD?
+Test-Driven Development (TDD) é uma prática de desenvolvimento onde você
+escreve os testes antes do código de produção.
+
+O fluxo do TDD é baseado no ciclo
+
+🔄 Ciclo do TDD:
+
+| Fase         | Descrição                                                         |
+| ------------ | ----------------------------------------------------------------- |
+| **Red**      | Escreva um teste que **falha** (o código ainda não existe).       |
+| **Green**    | Implemente o código **mínimo necessário para passar o teste**.    |
+| **Refactor** | **Refatore** o código mantendo todos os testes verdes (passando). |
+
+🧠 Vantagens do TDD:
+
+- Código mais confiável.
+- Design orientado a testes → normalmente leva a uma arquitetura melhor e mais desacoplada.
+- Facilita manutenção e refatorações seguras.
+- Reduz bugs e retrabalho.
+
+🔥 Exemplo prático de TDD — Cadastro de Cliente
+
+🎯 Passo 1 — Red (Teste primeiro)
+
+✅ Escrever o teste para a regra de negócio:
+
+"Não permitir cadastro de cliente com e-mail vazio ou nulo."
+
+package br.com.exemplo.application.usecase;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+public class CadastrarClienteUseCaseTest {
+
+    private ClienteRepository repository;
+    private CadastrarClienteUseCase useCase;
+
+    @BeforeEach
+    void setup() {
+        repository = mock(ClienteRepository.class);
+        useCase = new CadastrarClienteUseCase(repository);
+    }
+
+    @Test
+    void naoDeveCadastrarClienteComEmailVazio() {
+        Cliente cliente = new Cliente(null, "João", "", "119999999");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            useCase.executar(cliente);
+        });
+
+        assertEquals("Email não pode ser vazio.", exception.getMessage());
+    }
+}
+
+✔️ Resultado esperado: Teste falha (não tem validação ainda).
+
+🎯 Passo 2 — Green (Implementar o código mínimo)
+
+✅ Implementar a regra no CadastrarClienteUseCase:
+
+package br.com.exemplo.application.usecase;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+
+public class CadastrarClienteUseCase {
+
+    private final ClienteRepository repository;
+
+    public CadastrarClienteUseCase(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public Cliente executar(Cliente cliente) {
+        if (cliente.getEmail() == null || cliente.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Email não pode ser vazio.");
+        }
+
+        return repository.salvar(cliente);
+    }
+}
+
+✔️ Resultado: Teste passa (verde).
+
+---
+
+🎯 Passo 3 — Refactor (Melhorar sem quebrar)
+- Podemos extrair validações, criar uma classe de validação separada, melhorar nomes, simplificar código.
+
+✔️ Exemplo simples de refatoração:
+
+private void validarCliente(Cliente cliente) {
+    if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
+        throw new IllegalArgumentException("Email não pode ser vazio.");
+    }
+}
+
+E depois usar dentro de executar():
+
+public Cliente executar(Cliente cliente) {
+    validarCliente(cliente);
+    return repository.salvar(cliente);
+}
+
+✔️ Roda os testes novamente → Todos continuam verdes.
+
+------
+
+🔥 Ciclo TDD — Outro exemplo rápido
+
+✅ Teste:
+
+@Test
+void deveGerarIdParaClienteSalvo() {
+    Cliente cliente = new Cliente(null, "Maria", "maria@email.com", "119999999");
+
+    when(repository.salvar(cliente))
+        .thenReturn(new Cliente(1L, "Maria", "maria@email.com", "119999999"));
+
+    Cliente salvo = useCase.executar(cliente);
+
+    assertNotNull(salvo.getId());
+    assertEquals(1L, salvo.getId());
+}
+
+✔️ Código mínimo:
+
+public Cliente executar(Cliente cliente) {
+    validarCliente(cliente);
+    return repository.salvar(cliente);
+}
+
+✔️ Repository Mock resolve o ID simulando o comportamento.
+
+🔥 Boas Práticas no TDD
+
+| Prática                              | Descrição                                  |
+| ------------------------------------ | ------------------------------------------ |
+| ✅ **Testes pequenos e rápidos**      | Mantém o ciclo rápido.                     |
+| ✅ **Um teste, uma responsabilidade** | Teste deve ter um único objetivo.          |
+| ✅ **Nomenclatura clara dos testes**  | O nome do método descreve o comportamento. |
+| ✅ **Isolamento com Mocks**           | Use Mockito para dependências externas.    |
+| ✅ **Red-Green-Refactor** sempre      | Nunca pule etapas.                         |
+
+
+🏆 Resumo Visual do Fluxo TDD
+
+1. RED → Escreva um teste que falha (sem implementação ainda).
+2. GREEN → Escreva o código mínimo para o teste passar.
+3. REFACTOR → Melhore o código mantendo o teste verde.
+4. Repita.

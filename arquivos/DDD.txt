@@ -1,0 +1,227 @@
+DDD
+
+DDD — Domain-Driven Design, que é uma abordagem poderosa para desenvolvimento de software orientado ao domínio,
+ou seja, focada em resolver os problemas reais do negócio com código claro, estruturado e alinhado com a linguagem da empresa.
+
+🏛️ DDD — Domain-Driven Design
+🔥 O que é DDD?
+
+Domain-Driven Design (DDD) é uma abordagem de desenvolvimento de software que foca no modelo de domínio,
+colocando as regras de negócio no centro da aplicação, com forte colaboração entre técnicos (devs) e especialistas do negócio.
+
+🎯 Objetivo Principal do DDD:
+
+- Alinhar o software com as regras e necessidades do negócio.
+- Promover um modelo compartilhado entre times técnicos e de negócio (Ubiquitous Language — Linguagem Ubíqua).
+- Resolver problemas complexos mantendo o código organizado, modular e sustentável.
+
+🧠 Pilares Fundamentais do DDD:
+
+- ✅ Linguagem Ubíqua (Ubiquitous Language)
+- ✅ Modelagem Tática (patterns de código)
+- ✅ Modelagem Estratégica (contextos, comunicação e organização dos domínios)
+
+🚀 Modelagem Estratégica no DDD
+
+🔹 Bounded Context (Contexto Delimitado)
+
+- Um limite lógico onde um modelo de domínio faz sentido.
+- Cada contexto possui sua própria linguagem, modelo, regras e responsabilidades.
+
+✔️ Exemplo:
+
+- Contexto Pagamento não conhece detalhes do contexto Vendas diretamente.
+
+🔹 Ubiquitous Language (Linguagem Ubíqua)
+
+- Uma linguagem comum entre desenvolvedores e especialistas do negócio.
+
+Reflete-se em: nomes de entidades, métodos, atributos, classes, casos de uso, endpoints, etc.
+
+🔹 Relationship Patterns entre Contextos
+
+- Shared Kernel, Customer/Supplier, Conformist, Anticorruption Layer (ACL), etc.
+
+🏗️ Modelagem Tática no DDD — Patterns Principais
+
+| Pattern                 | Descrição                                                              |
+| ----------------------- | ---------------------------------------------------------------------- |
+| ✅ **Entity**            | Tem identidade única e ciclo de vida próprio.                          |
+| ✅ **Value Object (VO)** | Não tem identidade; definido por seus valores.                         |
+| ✅ **Aggregate**         | Conjunto de entidades e objetos regidos por uma raiz (Aggregate Root). |
+| ✅ **Repository**        | Interface de acesso a Aggregates.                                      |
+| ✅ **Factory**           | Cria objetos complexos ou agregados.                                   |
+| ✅ **Service**           | Lógica de domínio que não se encaixa em Entity ou VO.                  |
+
+--
+
+🔥 Exemplo prático de DDD aplicado — Domínio de Clientes
+
+🔸 Entity — Cliente
+
+package br.com.exemplo.domain.entity;
+
+import java.util.Objects;
+
+public class Cliente {
+    private final Long id;
+    private final String nome;
+    private final Email email;
+    private final Documento documento;
+
+    public Cliente(Long id, String nome, Email email, Documento documento) {
+        this.id = id;
+        this.nome = nome;
+        this.email = email;
+        this.documento = documento;
+    }
+
+    public Long getId() { return id; }
+    public String getNome() { return nome; }
+    public Email getEmail() { return email; }
+    public Documento getDocumento() { return documento; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Cliente)) return false;
+        Cliente cliente = (Cliente) o;
+        return Objects.equals(id, cliente.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}
+
+---
+
+🔸 Value Objects — Email e Documento
+
+package br.com.exemplo.domain.vo;
+
+import java.util.Objects;
+
+public class Email {
+    private final String endereco;
+
+    public Email(String endereco) {
+        if (endereco == null || !endereco.contains("@")) {
+            throw new IllegalArgumentException("Email inválido.");
+        }
+        this.endereco = endereco;
+    }
+
+    public String getEndereco() {
+        return endereco;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Email)) return false;
+        Email email = (Email) o;
+        return endereco.equals(email.endereco);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(endereco);
+    }
+}
+
+✔️ Documento segue o mesmo padrão.
+
+🔸 Aggregate Root — Cliente
+
+- O próprio Cliente é o Aggregate Root, porque todas as operações no agregado passam por ele.
+
+---
+
+🔸 Repository — Interface no Domínio
+
+package br.com.exemplo.domain.repository;
+
+import br.com.exemplo.domain.entity.Cliente;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ClienteRepository {
+    Cliente salvar(Cliente cliente);
+    Optional<Cliente> buscarPorId(Long id);
+    List<Cliente> buscarTodos();
+    void deletarPorId(Long id);
+}
+
+---
+
+🔸 Domain Service — Exemplo de Serviço de Domínio
+
+package br.com.exemplo.domain.service;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+
+public class ClienteService {
+
+    private final ClienteRepository repository;
+
+    public ClienteService(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public Cliente cadastrarCliente(Cliente cliente) {
+        // Validação de regras de negócio complexas
+        return repository.salvar(cliente);
+    }
+}
+
+📦 Organização dos Pacotes no DDD
+
+br.com.exemplo
+├── domain
+│   ├── entity
+│   │   └── Cliente.java
+│   ├── vo
+│   │   └── Email.java, Documento.java
+│   ├── repository
+│   │   └── ClienteRepository.java
+│   └── service
+│       └── ClienteService.java
+├── application
+│   └── usecase
+├── adapter
+│   ├── controller
+│   └── gateway
+└── framework
+
+----------
+
+🧠 DDD na prática junto com Clean Architecture:
+
+- ✅ O DDD define como modelar seu domínio.
+- ✅ A Clean Architecture define como organizar o código e as dependências.
+- 💡 DDD + Clean Architecture = Código alinhado ao negócio, modular, escalável, testável e resiliente.
+
+---
+
+🔥 Benefícios do DDD:
+
+- Foco nas regras de negócio, não na tecnologia.
+- Alta clareza no modelo e na linguagem.
+- Código mais flexível, evolutivo e sustentável.
+- Facilita a separação entre diferentes contextos do negócio.
+
+🏆 Resumo dos Patterns Táticos do DDD
+
+| Pattern          | Descrição                                                     |
+| ---------------- | ------------------------------------------------------------- |
+| **Entity**       | Objeto com identidade e ciclo de vida                         |
+| **Value Object** | Sem identidade, definido por seus atributos                   |
+| **Aggregate**    | Conjunto de entidades regido por um Aggregate Root            |
+| **Repository**   | Interface para persistência dos Aggregates                    |
+| **Factory**      | Criação de objetos ou Aggregates complexos                    |
+| **Service**      | Lógica de domínio que não se encaixa em Entity ou ValueObject |
+

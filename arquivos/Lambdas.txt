@@ -1,0 +1,178 @@
+
+Lambdas
+
+☁️ O que é AWS Lambda?
+
+- Serviço de computação serverless da AWS.
+- Permite executar código sem necessidade de gerenciar servidores.
+- Você paga apenas pelo tempo de execução (por invocação e duração).
+- Escalabilidade automática.
+- Suporte a várias linguagens, incluindo Java, Python, Node.js, Go, C#, Ruby e outros.
+
+🔥 Conceito Chave do AWS Lambda
+
+- ✅ Função pequena, desacoplada e com uma única responsabilidade.
+- ✅ Executada em resposta a eventos:
+	- HTTP/API Gateway
+	- S3 (upload, delete)
+	- DynamoDB Streams
+	- EventBridge
+	- SNS, SQS
+	- Invocação direta
+
+🏗️ Estrutura de uma Lambda em Java
+
+- ✔️ Uma Lambda Java é essencialmente uma classe que implementa uma interface da AWS SDK, geralmente:
+- ✅ RequestHandler<I, O>
+- ✅ ou RequestStreamHandler (para controle mais avançado)
+
+🎯 Exemplo Básico com Java — Lambda Hello World
+
+✔️ Dependência Maven necessária:
+
+<dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>aws-lambda-java-core</artifactId>
+    <version>1.2.3</version>
+</dependency>
+
+
+✔️ Implementação da Lambda:
+
+package br.com.lambda;
+
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
+public class HelloLambda implements RequestHandler<String, String> {
+
+    @Override
+    public String handleRequest(String input, Context context) {
+        context.getLogger().log("Input recebido: " + input);
+        return "Olá, " + input + "! Sua Lambda executou com sucesso.";
+    }
+}
+
+✔️ Empacotamento
+
+No Maven, gera-se um arquivo .jar usando:
+
+mvn clean package
+
+✔️ O JAR deve ser do tipo “uber jar” ou “fat jar”, contendo todas as dependências.
+
+✔️ Configuração da Lambda na AWS:
+
+Runtime: Java 11 ou Java 17
+Handler: br.com.lambda.HelloLambda::handleRequest
+Upload: arquivo .jar
+
+🚀 Testando a Lambda (Exemplo de Payload):
+
+Input:
+"André"
+
+Output:
+"Olá, André! Sua Lambda executou com sucesso."
+
+---
+
+🔥 Exemplo Real — Lambda para Processar Dados
+
+✔️ Objetivo:
+
+- Receber um JSON com dados de cliente.
+- Retornar uma mensagem de confirmação.
+
+✅ Classe Cliente.java (Model)
+
+package br.com.lambda.model;
+
+public class Cliente {
+    private String nome;
+    private String email;
+
+    public Cliente() { }
+
+    public Cliente(String nome, String email) {
+        this.nome = nome;
+        this.email = email;
+    }
+
+    public String getNome() { return nome; }
+    public String getEmail() { return email; }
+
+    public void setNome(String nome) { this.nome = nome; }
+    public void setEmail(String email) { this.email = email; }
+}
+
+---
+
+✅ Lambda Handler:
+
+package br.com.lambda;
+
+import br.com.lambda.model.Cliente;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
+public class ProcessarClienteLambda implements RequestHandler<Cliente, String> {
+
+    @Override
+    public String handleRequest(Cliente input, Context context) {
+        context.getLogger().log("Processando cliente: " + input.getNome());
+        return "Cliente " + input.getNome() + " com email " + input.getEmail() + " processado com sucesso.";
+    }
+}
+
+✅ Exemplo de Payload JSON:
+
+{
+    "nome": "André Leão",
+    "email": "andre@email.com"
+}
+
+
+✅ Resposta:
+
+"Cliente André Leão com email andre@email.com processado com sucesso."
+
+---
+
+🏗️ Deploy — Formas Comuns:
+
+✔️ Manual pela Console AWS.
+✔️ Via AWS CLI:
+
+aws lambda create-function --function-name MinhaLambda \
+--runtime java17 \
+--handler br.com.lambda.ProcessarClienteLambda::handleRequest \
+--role arn:aws:iam::123456789012:role/execution-role \
+--zip-file fileb://meu-jar-lambda.zip
+
+---
+
+✔️ Via Infraestrutura como Código:
+
+- CloudFormation
+- Terraform
+- AWS SAM (Serverless Application Model)
+
+🏆 Boas Práticas para Lambda com Java:
+
+| Prática                       | ✔️ Dicas                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| Tempo de startup              | Java possui tempo de cold start maior que Node/Python. Otimize com SnapStart (Java 11/Corretto). |
+| Classes pequenas              | Uma função = uma responsabilidade.                                                               |
+| Empacotamento                 | Use Uber/Fat Jar com Maven Shade ou Spring Native para reduzir cold start.                       |
+| Gerenciamento de dependências | Seja minimalista. Evite bibliotecas pesadas desnecessárias.                                      |
+| Monitoramento                 | Use CloudWatch Logs e X-Ray.                                                                     |
+| Timeout                       | Configure bem (Java inicializa mais lento).                                                      |
+
+----
+
+🔥 Lambda + API Gateway + Java → API REST Serverless
+
+- ✔️ Lambda + API Gateway → Cria uma API REST sem servidor.
+- Lambda processa requisições HTTP.
+- API Gateway faz o roteamento das rotas.

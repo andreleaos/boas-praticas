@@ -1,0 +1,303 @@
+
+Design Patterns - GoF
+
+📖 Definidos no livro clássico “Design Patterns: Elements of Reusable Object-Oriented Software” (1994), dos autores
+Erich Gamma, Richard Helm, Ralph Johnson e John Vlissides, conhecidos como Gang of Four (GoF).
+
+🎯 O que são Design Patterns?
+
+- São soluções reutilizáveis, comprovadas e elegantes para problemas recorrentes no desenvolvimento de software.
+- Não são código pronto, mas sim modelos e templates de soluções.
+
+🔥 Categorias dos Patterns GoF
+
+| Tipo                | Descrição                                    | Quantidade |
+| ------------------- | -------------------------------------------- | ---------- |
+| **Criacionais**     | Criação de objetos                           | 5          |
+| **Estruturais**     | Organização e composição de objetos          | 7          |
+| **Comportamentais** | Comunicação e responsabilidade entre objetos | 11         |
+
+🚀 1. Patterns Criacionais
+
+| Pattern              | Descrição                                         |
+| -------------------- | ------------------------------------------------- |
+| **Singleton**        | Garante uma única instância global.               |
+| **Factory Method**   | Cria objetos delegando a decisão para subclasses. |
+| **Abstract Factory** | Cria famílias de objetos relacionados.            |
+| **Builder**          | Cria objetos complexos passo a passo.             |
+| **Prototype**        | Cria objetos clonando uma instância existente.    |
+
+
+✔️ Exemplo — Singleton
+
+public class ConexaoBanco {
+
+    private static ConexaoBanco instancia;
+
+    private ConexaoBanco() { }
+
+    public static ConexaoBanco getInstancia() {
+        if (instancia == null) {
+            instancia = new ConexaoBanco();
+        }
+        return instancia;
+    }
+}
+
+----
+
+✔️ Exemplo — Factory Method
+
+public interface Transporte {
+    void entregar();
+}
+
+public class Caminhao implements Transporte {
+    public void entregar() {
+        System.out.println("Entrega por caminhão.");
+    }
+}
+
+public class Navio implements Transporte {
+    public void entregar() {
+        System.out.println("Entrega por navio.");
+    }
+}
+
+public abstract class Logistica {
+    public abstract Transporte criarTransporte();
+}
+
+public class LogisticaRodoviaria extends Logistica {
+    public Transporte criarTransporte() {
+        return new Caminhao();
+    }
+}
+
+public class LogisticaMaritima extends Logistica {
+    public Transporte criarTransporte() {
+        return new Navio();
+    }
+}
+
+---
+
+✔️ Exemplo — Builder
+
+public class Cliente {
+
+    private String nome;
+    private String email;
+    private String telefone;
+
+    private Cliente(Builder builder) {
+        this.nome = builder.nome;
+        this.email = builder.email;
+        this.telefone = builder.telefone;
+    }
+
+    public static class Builder {
+        private String nome;
+        private String email;
+        private String telefone;
+
+        public Builder nome(String nome) {
+            this.nome = nome;
+            return this;
+        }
+
+        public Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Builder telefone(String telefone) {
+            this.telefone = telefone;
+            return this;
+        }
+
+        public Cliente build() {
+            return new Cliente(this);
+        }
+    }
+}
+
+✔️ Uso:
+
+Cliente cliente = new Cliente.Builder()
+    .nome("André")
+    .email("andre@email.com")
+    .telefone("119999999")
+    .build();
+
+---
+
+🏗️ 2. Patterns Estruturais
+
+| Pattern       | Descrição                                                 |
+| ------------- | --------------------------------------------------------- |
+| **Adapter**   | Adapta uma interface existente para outra esperada.       |
+| **Bridge**    | Separa a abstração da implementação.                      |
+| **Composite** | Trabalha objetos em estruturas hierárquicas (árvores).    |
+| **Decorator** | Adiciona funcionalidades a objetos dinamicamente.         |
+| **Facade**    | Fornece uma interface simplificada para um subsistema.    |
+| **Flyweight** | Reduz o uso de memória compartilhando objetos.            |
+| **Proxy**     | Cria um objeto intermediário (proxy) que controla acesso. |
+
+✔️ Exemplo — Adapter
+
+public interface Pagamento {
+    void pagar();
+}
+
+public class PayPal {
+    public void efetuarPagamento() {
+        System.out.println("Pagamento via PayPal.");
+    }
+}
+
+public class PayPalAdapter implements Pagamento {
+    private PayPal payPal;
+
+    public PayPalAdapter(PayPal payPal) {
+        this.payPal = payPal;
+    }
+
+    public void pagar() {
+        payPal.efetuarPagamento();
+    }
+}
+
+--
+
+✔️ Exemplo — Facade
+
+public class PedidoFacade {
+    private Estoque estoque;
+    private Pagamento pagamento;
+    private NotaFiscal notaFiscal;
+
+    public PedidoFacade() {
+        this.estoque = new Estoque();
+        this.pagamento = new Pagamento();
+        this.notaFiscal = new NotaFiscal();
+    }
+
+    public void processarPedido() {
+        estoque.reservar();
+        pagamento.cobrar();
+        notaFiscal.gerar();
+    }
+}
+
+---
+
+🤖 3. Patterns Comportamentais
+
+| Pattern                     | Descrição                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| **Chain of Responsibility** | Passa a requisição por uma cadeia de objetos.                                   |
+| **Command**                 | Encapsula uma requisição como um objeto.                                        |
+| **Interpreter**             | Interpreta linguagens ou expressões específicas.                                |
+| **Iterator**                | Permite percorrer coleções de forma uniforme.                                   |
+| **Mediator**                | Controla a comunicação entre objetos.                                           |
+| **Memento**                 | Armazena e restaura o estado de um objeto.                                      |
+| **Observer**                | Permite que objetos sejam notificados sobre eventos.                            |
+| **State**                   | Permite que um objeto altere seu comportamento quando seu estado muda.          |
+| **Strategy**                | Permite alterar algoritmos em tempo de execução.                                |
+| **Template Method**         | Define o esqueleto de um algoritmo e permite que subclasses implementem partes. |
+| **Visitor**                 | Permite adicionar operações a objetos sem alterar suas classes.                 |
+
+✔️ Exemplo — Strategy
+
+public interface DescontoStrategy {
+    double calcular(double valor);
+}
+
+public class DescontoNatal implements DescontoStrategy {
+    public double calcular(double valor) {
+        return valor * 0.9;
+    }
+}
+
+public class DescontoBlackFriday implements DescontoStrategy {
+    public double calcular(double valor) {
+        return valor * 0.8;
+    }
+}
+
+public class CalculadoraDeDesconto {
+    private DescontoStrategy estrategia;
+
+    public CalculadoraDeDesconto(DescontoStrategy estrategia) {
+        this.estrategia = estrategia;
+    }
+
+    public double calcular(double valor) {
+        return estrategia.calcular(valor);
+    }
+}
+
+
+✔️ Uso:
+
+CalculadoraDeDesconto calculadora = new CalculadoraDeDesconto(new DescontoNatal());
+System.out.println(calculadora.calcular(100)); // 90
+
+----
+
+✔️ Exemplo — Observer
+
+public interface Observador {
+    void notificar(String mensagem);
+}
+
+public class Cliente implements Observador {
+    private String nome;
+
+    public Cliente(String nome) {
+        this.nome = nome;
+    }
+
+    public void notificar(String mensagem) {
+        System.out.println(nome + " recebeu: " + mensagem);
+    }
+}
+
+public class Pedido {
+    private List<Observador> observadores = new ArrayList<>();
+
+    public void adicionarObservador(Observador obs) {
+        observadores.add(obs);
+    }
+
+    public void realizarPedido() {
+        System.out.println("Pedido realizado.");
+        observadores.forEach(o -> o.notificar("Pedido confirmado!"));
+    }
+}
+
+✔️ Uso:
+
+Pedido pedido = new Pedido();
+pedido.adicionarObservador(new Cliente("André"));
+pedido.realizarPedido();
+
+---
+
+🎯 Resumo Geral dos Patterns GoF
+
+| Tipo                | Patterns                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Criacionais**     | Singleton, Factory Method, Abstract Factory, Builder, Prototype                                                                 |
+| **Estruturais**     | Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy                                                                 |
+| **Comportamentais** | Chain of Responsibility, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor |
+
+🏆 Por que usar Design Patterns?
+
+- ✔️ Soluções robustas e testadas.
+- ✔️ Melhora a legibilidade, manutenibilidade e escalabilidade.
+- ✔️ Aumenta a clareza na comunicação técnica (todo mundo entende "Facade", "Strategy", "Observer").
+- ✔️ Reduz acoplamento e melhora a flexibilidade.
+
+

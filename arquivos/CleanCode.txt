@@ -1,0 +1,240 @@
+
+Clean Code
+
+O livro "Clean Code: A Handbook of Agile Software Craftsmanship", do Robert C. Martin (Tio Bob), é referência mundial sobre boas práticas na escrita de código limpo,
+legível, sustentável e de fácil manutenção.
+
+🧠 Principais Conceitos de Clean Code — Tio Bob
+
+🔹 1. Nomes Significativos
+
+- Regra: O nome deve dizer "o que é", "para que serve" ou "o que faz".
+- ✅ Use nomes claros, descritivos e expressivos.
+- ❌ Evite abreviações obscuras ou genéricas (a, temp, data, etc.).
+
+✔️ Exemplo ruim:
+int d;  // dias desde a última atualização
+
+✔️ Exemplo limpo:
+int diasDesdeUltimaAtualizacao;
+
+🔹 2. Funções Pequenas e Bem Definidas
+
+Funções devem ser:
+
+✅ Pequenas.
+✅ Fazer uma única coisa bem feita (Single Responsibility Principle).
+✅ Nome + parâmetros devem expressar claramente o que ela faz.
+
+✔️ Exemplo ruim:
+
+void processaDados(List<String> dados) {
+    for (String dado : dados) {
+        if (dado.startsWith("A")) {
+            System.out.println(dado.toUpperCase());
+        }
+    }
+}
+
+✔️ Exemplo limpo (separando responsabilidades):
+
+void imprimeDadosQueComecamComA(List<String> dados) {
+    dados.stream()
+         .filter(dado -> dado.startsWith("A"))
+         .map(String::toUpperCase)
+         .forEach(System.out::println);
+}
+
+
+--
+
+🔹 3. Evitar Comentários Desnecessários
+
+- ✅ Código deve se explicar sozinho.
+- Comentários só quando forem realmente necessários para explicar regras de negócio ou limitações técnicas.
+
+✔️ Ruim:
+
+// Incrementa i em 1
+i = i + 1;
+
+✔️ Bom:
+
+i++;  // Se for algo específico, comente se houver contexto necessário
+
+✔️ Melhor ainda → Nomeie bem:
+
+int proximaPosicao = posicaoAtual + 1;
+
+---
+
+🔹 4. Formatação Clara e Legível
+
+Quebra de linhas, identação, espaçamento e agrupamento lógico são fundamentais.
+
+if (saldo >= valor) {
+    realizarSaque(valor);
+} else {
+    notificarSaldoInsuficiente();
+}
+
+---
+
+🔹 5. Trate Erros de Forma Clara
+
+- Use exceções, não códigos de erro.
+- Crie exceções específicas.
+
+✔️ Ruim:
+
+if (saldo < valor) {
+    return -1;
+}
+
+✔️ Bom:
+
+if (saldo < valor) {
+    throw new SaldoInsuficienteException("Saldo insuficiente para saque.");
+}
+
+---
+
+🔹 6. Remova Código Morto e Comentado
+
+- Código comentado = sujeira.
+- Se não for mais usado, delete sem medo (está versionado no Git).
+
+---
+
+🔹 7. Evitar Números e Strings Mágicas
+
+- Coloque constantes nomeadas no lugar de valores "mágicos".
+
+✔️ Ruim:
+
+if (velocidade > 120) { ... }
+
+✔️ Bom:
+
+private static final int LIMITE_VELOCIDADE = 120;
+
+if (velocidade > LIMITE_VELOCIDADE) { ... }
+
+---
+
+🔹 8. Princípio da Responsabilidade Única (SRP)
+
+Cada classe deve ter uma única razão para mudar.
+
+✔️ Ruim: (Mistura de lógica de negócio e persistência)
+
+public class Cliente {
+    void salvarNoBanco() { ... }
+    void calcularDesconto() { ... }
+}
+
+✔️ Bom: (Separação)
+
+public class Cliente {
+    void calcularDesconto() { ... }
+}
+
+public class ClienteRepository {
+    void salvar(Cliente cliente) { ... }
+}
+
+🔹 9. Evitar Funções com Muitos Parâmetros
+
+✔️ Máximo recomendado: 3.
+
+Se tiver mais → use objetos, DTOs ou builders.
+
+✔️ Ruim:
+
+void cadastrarCliente(String nome, String email, String telefone, String endereco, String cpf) { ... }
+
+✔️ Bom:
+
+void cadastrarCliente(Cliente cliente) { ... }
+
+🔹 10. Código Orientado a Objetos de Verdade
+
+Use corretamente:
+
+- ✅ Encapsulamento.
+- ✅ Herança com cautela.
+- ✅ Polimorfismo.
+- ✅ Composição sobre herança quando possível.
+
+---
+
+🔹 11. Testabilidade e Código Limpo Andam Juntos
+
+- Código limpo é mais fácil de testar.
+- SRP, funções pequenas, classes bem definidas → facilitam testes unitários.
+
+---
+
+🔥 Exemplo Final — Código Sujo vs Código Limpo
+
+--
+
+🔥 Código Sujo:
+
+public class Pedido {
+    public void processaPedido(int tipoPagamento, double valor) {
+        if (tipoPagamento == 1) {
+            System.out.println("Pagamento em dinheiro no valor de " + valor);
+        } else if (tipoPagamento == 2) {
+            System.out.println("Pagamento no cartão no valor de " + valor);
+        } else {
+            System.out.println("Tipo de pagamento inválido");
+        }
+    }
+}
+
+✨ Código Limpo:
+
+public interface MetodoPagamento {
+    void pagar(double valor);
+}
+
+public class Dinheiro implements MetodoPagamento {
+    @Override
+    public void pagar(double valor) {
+        System.out.println("Pagamento em dinheiro no valor de " + valor);
+    }
+}
+
+public class Cartao implements MetodoPagamento {
+    @Override
+    public void pagar(double valor) {
+        System.out.println("Pagamento no cartão no valor de " + valor);
+    }
+}
+
+public class Pedido {
+    public void processaPedido(MetodoPagamento metodo, double valor) {
+        metodo.pagar(valor);
+    }
+}
+
+✔️ 🏆 Resultado:
+
+- Aberto para extensão, fechado para modificação (OCP — Open/Closed Principle).
+- Código legível, organizado e de fácil manutenção.
+
+🏁 Resumo dos Princípios do Clean Code
+
+| Princípio                            | Descrição                                |
+| ------------------------------------ | ---------------------------------------- |
+| Nomes claros                         | Variáveis, métodos e classes descritivos |
+| Pequenas funções                     | Cada uma faz uma única coisa             |
+| Comentários apenas quando necessário | Código deve se autoexplicar              |
+| Remova código morto                  | Código comentado não deve existir        |
+| Sem números mágicos                  | Use constantes nomeadas                  |
+| Tratamento correto de erros          | Use exceções, não códigos de erro        |
+| SRP                                  | Uma classe = uma responsabilidade        |
+| Poucos parâmetros                    | Agrupe em objetos se necessário          |
+| Código testável                      | Organizado, desacoplado, fácil de testar |
+

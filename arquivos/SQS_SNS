@@ -1,0 +1,203 @@
+
+SQS / SNS
+
+☁️ O que é AWS SNS?
+
+- SNS (Simple Notification Service) é um serviço de pub/sub (publicação/assinatura).
+- Permite enviar mensagens para múltiplos assinantes, como:
+
+- 📱 E-mails
+- 📲 SMS
+- 🔥 HTTP/S endpoints
+- 📨 SQS queues
+- 🔥 Lambdas
+
+✔️ Push-based → Envia a mensagem para os assinantes automaticamente.
+
+---
+
+☁️ O que é AWS SQS?
+
+- SQS (Simple Queue Service) é um serviço de fila de mensagens.
+- Permite o envio, armazenamento e recebimento de mensagens entre componentes distribuídos.
+
+- É pull-based → O consumidor precisa consultar (poll) para receber mensagens.
+
+---
+
+🔥 SNS + SQS — Arquitetura Combinada
+
+✔️ Padrão comum em AWS:
+
+Producer → SNS Topic → [SQS Queue 1, SQS Queue 2, Lambda, etc.]
+                            ↓                  ↓
+                       Consumer 1         Consumer 2
+
+- O Producer publica no SNS Topic.
+- O SNS entrega para várias filas SQS (fanout).
+- Cada fila SQS é lida por um Consumer independente.
+
+🎯 Exemplos Práticos em Java
+
+🔧 Dependências Maven (AWS SDK V2)
+
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>sns</artifactId>
+    <version>2.25.22</version>
+</dependency>
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>sqs</artifactId>
+    <version>2.25.22</version>
+</dependency>
+
+
+🏗️ Exemplo — Publicando no SNS
+
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sns.model.PublishResponse;
+
+public class SnsPublisher {
+
+    public static void main(String[] args) {
+        SnsClient snsClient = SnsClient.builder()
+                .region(Region.US_EAST_1)
+                .build();
+
+        String topicArn = "arn:aws:sns:us-east-1:123456789012:meu-topico-clientes";
+
+        PublishRequest request = PublishRequest.builder()
+                .message("Novo cliente cadastrado: André Leão")
+                .topicArn(topicArn)
+                .build();
+
+        PublishResponse result = snsClient.publish(request);
+        System.out.println("🚀 Mensagem publicada no SNS. ID: " + result.messageId());
+
+        snsClient.close();
+    }
+}
+
+📨 Exemplo — Enviando direto para SQS
+
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+
+public class SqsProducer {
+
+    public static void main(String[] args) {
+        SqsClient sqsClient = SqsClient.builder()
+                .region(Region.US_EAST_1)
+                .build();
+
+        String queueUrl = "https://sqs.us-east-1.amazonaws.com/123456789012/minha-fila-clientes";
+
+        SendMessageRequest request = SendMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .messageBody("Cadastro de cliente: André Leão")
+                .build();
+
+        SendMessageResponse response = sqsClient.sendMessage(request);
+
+        System.out.println("🚀 Mensagem enviada. ID: " + response.messageId());
+
+        sqsClient.close();
+    }
+}
+
+
+📥 Exemplo — Consumindo da SQS
+
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+
+import java.util.List;
+
+public class SqsConsumer {
+
+    public static void main(String[] args) {
+        SqsClient sqsClient = SqsClient.builder()
+                .region(Region.US_EAST_1)
+                .build();
+
+        String queueUrl = "https://sqs.us-east-1.amazonaws.com/123456789012/minha-fila-clientes";
+
+        while (true) {
+            ReceiveMessageRequest request = ReceiveMessageRequest.builder()
+                    .queueUrl(queueUrl)
+                    .maxNumberOfMessages(5)
+                    .waitTimeSeconds(10) // Long polling
+                    .build();
+
+            List<Message> messages = sqsClient.receiveMessage(request).messages();
+
+            for (Message message : messages) {
+                System.out.println("📥 Mensagem recebida: " + message.body());
+
+                // Processa e deleta a mensagem
+                DeleteMessageRequest deleteRequest = DeleteMessageRequest.builder()
+                        .queueUrl(queueUrl)
+                        .receiptHandle(message.receiptHandle())
+                        .build();
+
+                sqsClient.deleteMessage(deleteRequest);
+                System.out.println("🗑️ Mensagem deletada da fila.");
+            }
+        }
+    }
+}
+
+🔥 Funcionamento SNS + SQS Fanout
+
+✔️ SNS recebe a publicação.
+✔️ SNS entrega a mesma mensagem para várias filas SQS.
+✔️ Cada fila é lida por consumidores independentes e isolados.
+
+✅ Boas Práticas — SNS e SQS
+
+| Item                      | ✔️ Recomendações                                      |
+| ------------------------- | ----------------------------------------------------- |
+| Dead Letter Queue (DLQ)   | Configure para tratar mensagens que falharam.         |
+| Long Polling (SQS)        | Use `waitTimeSeconds` para reduzir custos e latência. |
+| Visibility Timeout        | Ajuste para evitar processamento duplicado.           |
+| Message Retention         | Configure quanto tempo a mensagem fica na fila.       |
+| Fila FIFO (se necessário) | Garanta ordem e processamento exatamente uma vez.     |
+| Retry + Backoff           | Implemente retries inteligentes no consumer.          |
+
+🔐 Autenticação e Permissões
+
+✔️ O SDK usa as credenciais configuradas via:
+
+~/.aws/credentials
+Variáveis de ambiente
+Roles (EC2, Lambda, ECS, etc.)
+
+✔️ Permissões necessárias no IAM:
+
+sns:Publish
+sqs:SendMessage
+sqs:ReceiveMessage
+sqs:DeleteMessage
+
+🏗️ Arquitetura Serverless com SNS + SQS + Lambda (opcional)
+
+→ SNS (Topic de Clientes)
+   ↳ SQS FilaCadastro
+   ↳ SQS FilaAtualizacao
+   ↳ Lambda para Notificações
+
+📦 Casos de Uso no Mundo Real
+📦 Processamento de pedidos.
+📢 Notificações assíncronas (e-mail, SMS, logs).
+🔄 Integração entre microsserviços.
+🚀 Desacoplamento total entre produtores e consumidores.
+🏗️ Orquestração de workflows (fanout ou pipelines).
+

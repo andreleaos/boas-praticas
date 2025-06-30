@@ -1,0 +1,502 @@
+Projeto de Api rest
+
+API REST de Clientes usando Clean Architecture em Java com Spring Boot e JPA. Ela será dividida em:
+
+✅ Camada de Domínio (domain)
+
+- Entidade Cliente
+- Interface ClienteRepository
+
+✅ Camada de Aplicação (application)
+
+- Caso de uso CadastrarClienteUseCase
+- Caso de uso BuscarClienteUseCase
+- Caso de uso DeletarClienteUseCase
+- Caso de uso AtualizarClienteUseCase
+
+✅ Camada de Adapters (adapter)
+
+- controller → Controller REST da API
+- gateway → Implementação da interface de persistência usando JPA
+
+✅ Camada de Frameworks & Drivers (framework)
+
+- Configurações do Spring Boot e JPA
+
+---
+
+🏗️ Estrutura de Pacotes
+
+br.com.exemplo
+├── adapter
+│   ├── controller
+│   │   └── ClienteController.java
+│   └── gateway
+│       └── ClienteRepositoryJpa.java
+├── application
+│   └── usecase
+│       ├── CadastrarClienteUseCase.java
+│       ├── BuscarClienteUseCase.java
+│       ├── AtualizarClienteUseCase.java
+│       └── DeletarClienteUseCase.java
+├── domain
+│   ├── entity
+│   │   └── Cliente.java
+│   └── repository
+│       └── ClienteRepository.java
+└── framework
+    └── Application.java
+
+🔸 1. Camada de Domínio
+
+✅ Entidade
+
+package br.com.exemplo.domain.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class Cliente {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nome;
+    private String email;
+    private String telefone;
+
+    public Cliente() { }
+
+    public Cliente(Long id, String nome, String email, String telefone) {
+        this.id = id;
+        this.nome = nome;
+        this.email = email;
+        this.telefone = telefone;
+    }
+
+    public Long getId() { return id; }
+    public String getNome() { return nome; }
+    public String getEmail() { return email; }
+    public String getTelefone() { return telefone; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setNome(String nome) { this.nome = nome; }
+    public void setEmail(String email) { this.email = email; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+}
+
+✅ Interface de Repositório (Porta de Saída)
+
+package br.com.exemplo.domain.repository;
+
+import br.com.exemplo.domain.entity.Cliente;
+import java.util.List;
+import java.util.Optional;
+
+public interface ClienteRepository {
+    Cliente salvar(Cliente cliente);
+    Optional<Cliente> buscarPorId(Long id);
+    List<Cliente> buscarTodos();
+    void deletarPorId(Long id);
+}
+
+
+🔸 2. Camada de Aplicação (Use Cases)
+
+✅ Cadastrar Cliente
+
+package br.com.exemplo.application.usecase;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+
+public class CadastrarClienteUseCase {
+
+    private final ClienteRepository repository;
+
+    public CadastrarClienteUseCase(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public Cliente executar(Cliente cliente) {
+        return repository.salvar(cliente);
+    }
+}
+
+✅ Buscar Cliente
+
+package br.com.exemplo.application.usecase;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public class BuscarClienteUseCase {
+
+    private final ClienteRepository repository;
+
+    public BuscarClienteUseCase(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public Optional<Cliente> buscarPorId(Long id) {
+        return repository.buscarPorId(id);
+    }
+
+    public List<Cliente> buscarTodos() {
+        return repository.buscarTodos();
+    }
+}
+
+✅ Atualizar Cliente
+
+package br.com.exemplo.application.usecase;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+
+public class AtualizarClienteUseCase {
+
+    private final ClienteRepository repository;
+
+    public AtualizarClienteUseCase(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public Cliente executar(Cliente cliente) {
+        return repository.salvar(cliente);
+    }
+}
+
+✅ Deletar Cliente
+
+package br.com.exemplo.application.usecase;
+
+import br.com.exemplo.domain.repository.ClienteRepository;
+
+public class DeletarClienteUseCase {
+
+    private final ClienteRepository repository;
+
+    public DeletarClienteUseCase(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public void executar(Long id) {
+        repository.deletarPorId(id);
+    }
+}
+
+🔸 3. Camada de Adapters
+
+✅ Gateway — Implementação do Repositório usando JPA
+
+package br.com.exemplo.adapter.gateway;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+
+@Component
+public class ClienteRepositoryJpa implements ClienteRepository {
+
+    private final SpringDataClienteRepository repository;
+
+    public ClienteRepositoryJpa(SpringDataClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public Cliente salvar(Cliente cliente) {
+        return repository.save(cliente);
+    }
+
+    @Override
+    public Optional<Cliente> buscarPorId(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public List<Cliente> buscarTodos() {
+        return repository.findAll();
+    }
+
+    @Override
+    public void deletarPorId(Long id) {
+        repository.deleteById(id);
+    }
+}
+
+interface SpringDataClienteRepository extends JpaRepository<Cliente, Long> {}
+
+---
+
+✅ Controller REST API
+
+package br.com.exemplo.adapter.controller;
+
+import br.com.exemplo.application.usecase.*;
+import br.com.exemplo.domain.entity.Cliente;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/clientes")
+public class ClienteController {
+
+    private final CadastrarClienteUseCase cadastrar;
+    private final BuscarClienteUseCase buscar;
+    private final AtualizarClienteUseCase atualizar;
+    private final DeletarClienteUseCase deletar;
+
+    public ClienteController(
+            CadastrarClienteUseCase cadastrar,
+            BuscarClienteUseCase buscar,
+            AtualizarClienteUseCase atualizar,
+            DeletarClienteUseCase deletar
+    ) {
+        this.cadastrar = cadastrar;
+        this.buscar = buscar;
+        this.atualizar = atualizar;
+        this.deletar = deletar;
+    }
+
+    @PostMapping
+    public ResponseEntity<Cliente> cadastrar(@RequestBody Cliente cliente) {
+        return ResponseEntity.ok(cadastrar.executar(cliente));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Cliente> buscarPorId(@PathVariable Long id) {
+        return buscar.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Cliente>> buscarTodos() {
+        return ResponseEntity.ok(buscar.buscarTodos());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Cliente> atualizar(@PathVariable Long id, @RequestBody Cliente cliente) {
+        cliente.setId(id);
+        return ResponseEntity.ok(atualizar.executar(cliente));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        deletar.executar(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+---
+
+🔸 4. Framework — Configuração do Spring Boot
+
+package br.com.exemplo.framework;
+
+import br.com.exemplo.adapter.gateway.ClienteRepositoryJpa;
+import br.com.exemplo.application.usecase.*;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+@SpringBootApplication(scanBasePackages = "br.com.exemplo")
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+
+    @Bean
+    public CadastrarClienteUseCase cadastrarClienteUseCase(ClienteRepositoryJpa repository) {
+        return new CadastrarClienteUseCase(repository);
+    }
+
+    @Bean
+    public BuscarClienteUseCase buscarClienteUseCase(ClienteRepositoryJpa repository) {
+        return new BuscarClienteUseCase(repository);
+    }
+
+    @Bean
+    public AtualizarClienteUseCase atualizarClienteUseCase(ClienteRepositoryJpa repository) {
+        return new AtualizarClienteUseCase(repository);
+    }
+
+    @Bean
+    public DeletarClienteUseCase deletarClienteUseCase(ClienteRepositoryJpa repository) {
+        return new DeletarClienteUseCase(repository);
+    }
+}
+
+🏁 Resultado
+
+✔️ API REST pronta com os endpoints:
+
+| Método | Endpoint             | Ação                  |
+| ------ | -------------------- | --------------------- |
+| POST   | `/api/clientes`      | Cadastrar cliente     |
+| GET    | `/api/clientes`      | Listar todos          |
+| GET    | `/api/clientes/{id}` | Buscar cliente por ID |
+| PUT    | `/api/clientes/{id}` | Atualizar cliente     |
+| DELETE | `/api/clientes/{id}` | Deletar cliente       |
+
+🚀 Resumo das Vantagens:
+
+- Domínio totalmente isolado e independente de frameworks.
+- Fácil manutenção e evolução.
+- Alta testabilidade.
+- Fácil trocar JPA, Banco ou até mesmo a API por outra tecnologia (GraphQL, Kafka, CLI, etc).
+
+---
+
+🔧 Arquivo pom.xml completo
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>br.com.exemplo</groupId>
+    <artifactId>api-clientes-clean-architecture</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>API Clientes - Clean Architecture</name>
+    <description>Exemplo de API REST aplicando Clean Architecture com Spring Boot e JPA</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <spring-boot.version>3.2.0</spring-boot.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- Spring Boot Starter Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter Data JPA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Banco de Dados H2 (para testes locais em memória) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Lombok (opcional, ajuda a reduzir boilerplate) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Dependências de Teste -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- Plugin do Spring Boot -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+            </plugin>
+
+            <!-- Plugin Compiler para garantir versão do Java -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
+
+---
+
+✅ Banco de Dados — Configuração (application.properties ou application.yml)
+
+Exemplo simples com H2 para desenvolvimento/teste:
+
+spring.datasource.url=jdbc:h2:mem:clientesdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=update
+
+# H2 Console
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+
+# Logs SQL (opcional)
+spring.jpa.show-sql=true
+
+----
+
+🔥 Para produção ou testes reais (exemplo com MySQL):
+
+spring.datasource.url=jdbc:mysql://localhost:3306/clientesdb
+spring.datasource.username=root
+spring.datasource.password=senha
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+# Logs SQL (opcional)
+spring.jpa.show-sql=true
+
+----
+
+🚀 Como rodar o projeto
+
+1. Crie a estrutura de pacotes como definimos.
+2. Inclua o pom.xml.
+3. Configure o application.properties.
+4. Rode pelo Maven:
+
+	mvn spring-boot:run
+
+ou pela sua IDE (IntelliJ, Eclipse, VS Code).

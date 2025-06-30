@@ -1,0 +1,174 @@
+
+Kafka
+
+🏛️ O que é Apache Kafka?
+
+- O Apache Kafka é uma plataforma distribuída de streaming de eventos.
+- Funciona como um message broker altamente escalável, tolerante a falhas e baseado em logs distribuídos.
+
+- É usado para:
+
+✅ Mensageria assíncrona.
+✅ Processamento de streams em tempo real.
+✅ Integração entre microsserviços.
+✅ Pipelines de dados.
+
+--
+
+🔥 Conceitos Fundamentais do Kafka
+
+| Conceito           | Descrição                                                           |
+| ------------------ | ------------------------------------------------------------------- |
+| **Producer**       | Publica mensagens em um tópico.                                     |
+| **Topic**          | Canal (log) onde as mensagens são armazenadas.                      |
+| **Partition**      | Divisão dentro de um tópico para paralelismo e escalabilidade.      |
+| **Offset**         | Posição sequencial da mensagem na partição.                         |
+| **Consumer**       | Lê as mensagens de um tópico.                                       |
+| **Consumer Group** | Grupo de consumidores para processamento balanceado.                |
+| **Broker**         | Servidor Kafka. Um cluster possui vários brokers.                   |
+| **Zookeeper**      | Coordena o cluster (em Kafka 2.x; Kafka 3+ pode ser sem Zookeeper). |
+
+🎯 Kafka — Arquitetura Básica
+
+Producer → Topic (com Partições) → Consumer Group
+
+✔️ Vários consumidores no mesmo grupo leem partições diferentes (balanceamento).
+✔️ Consumidores em grupos diferentes recebem todas as mensagens (broadcast por grupo).
+
+🏗️ Exemplo Prático — Kafka com Java
+
+🔧 Dependências Maven (Kafka Client)
+
+<dependency>
+    <groupId>org.apache.kafka</groupId>
+    <artifactId>kafka-clients</artifactId>
+    <version>3.7.0</version>
+</dependency>
+
+
+🔥 Configuração Kafka Local
+
+✔️ Kafka rodando localmente (localhost:9092).
+✔️ Topic: clientes-topic
+
+---
+
+🚀 Producer Kafka em Java
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+
+import java.util.Properties;
+
+public class ClienteProducer {
+
+    public static void main(String[] args) throws Exception {
+        String bootstrapServers = "localhost:9092";
+
+        // Configurações do Producer
+        Properties props = new Properties();
+        props.put("bootstrap.servers", bootstrapServers);
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        // Cria o Producer
+        Producer<String, String> producer = new KafkaProducer<>(props);
+
+        String topic = "clientes-topic";
+        String chave = "cliente1";
+        String valor = "Novo cliente cadastrado: André Leão";
+
+        // Envia a mensagem
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, chave, valor);
+
+        RecordMetadata metadata = producer.send(record).get();
+
+        System.out.println("🚀 Mensagem enviada com sucesso!");
+        System.out.println("Topic: " + metadata.topic());
+        System.out.println("Partition: " + metadata.partition());
+        System.out.println("Offset: " + metadata.offset());
+
+        producer.close();
+    }
+}
+
+---
+
+📥 Consumer Kafka em Java
+
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Properties;
+
+public class ClienteConsumer {
+
+    public static void main(String[] args) {
+        String bootstrapServers = "localhost:9092";
+        String grupo = "grupo-consumidores-clientes";
+        String topic = "clientes-topic";
+
+        // Configurações do Consumer
+        Properties props = new Properties();
+        props.put("bootstrap.servers", bootstrapServers);
+        props.put("group.id", grupo);
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("auto.offset.reset", "earliest"); // Começa desde o início se não tiver offset salvo
+
+        // Cria o Consumer
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+
+        // Inscreve no tópico
+        consumer.subscribe(Collections.singletonList(topic));
+
+        System.out.println("🕑 Aguardando mensagens...");
+
+        while (true) {
+            ConsumerRecords<String, String> registros = consumer.poll(Duration.ofMillis(1000));
+
+            for (ConsumerRecord<String, String> registro : registros) {
+                System.out.println("📥 Mensagem recebida:");
+                System.out.println("Key: " + registro.key());
+                System.out.println("Value: " + registro.value());
+                System.out.println("Partition: " + registro.partition());
+                System.out.println("Offset: " + registro.offset());
+                System.out.println("----------------------------------------");
+            }
+        }
+    }
+}
+
+
+🔥 Conceitos Avançados Kafka
+
+| Conceito                   | ✔️ Descrição                                            |
+| -------------------------- | ------------------------------------------------------- |
+| **Retention Policy**       | Tempo que as mensagens ficam no tópico (padrão 7 dias). |
+| **Offset**                 | Controle do ponto de leitura da fila/log.               |
+| **Consumer Groups**        | Distribuição de mensagens entre consumidores.           |
+| **Exactly-once semantics** | Kafka garante entrega exatamente uma vez.               |
+| **Kafka Streams**          | Processamento de streams dentro do próprio Kafka.       |
+
+🏆 Boas Práticas Kafka
+
+| Prática                | ✔️ Recomendação                                              |
+| ---------------------- | ------------------------------------------------------------ |
+| Escolha de Partições   | Mais partições = mais paralelismo, mas também mais overhead. |
+| Tratamento de Failures | Use Dead Letter Topics (DLT) se necessário.                  |
+| Segurança              | Configure SSL, SASL, ACL para produção.                      |
+| Monitoramento          | Kafka Manager, Prometheus, Grafana, Kafka UI.                |
+| Controle de Offset     | Manual (commit) para maior controle.                         |
+
+📦 Exemplos de Uso Real Kafka
+
+- Integração entre microsserviços.
+- Logs distribuídos.
+- Processamento de eventos (Event-Driven Architecture).
+- ETL em tempo real.
+- Analytics, Data Pipelines e Machine Learning.

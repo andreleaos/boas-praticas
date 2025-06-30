@@ -1,0 +1,996 @@
+POO, Programação orientada a objetos
+
+🚀 Introdução à Programação Orientada a Objetos (POO)
+
+📜 O que é POO?
+
+A Programação Orientada a Objetos (POO) é um paradigma de desenvolvimento que organiza o código em objetos,
+que representam entidades do mundo real ou conceitos abstratos. Cada objeto possui:
+
+	- Atributos → características (dados)
+	- Métodos → comportamentos (funções/ações)
+
+O objetivo é tornar o código mais próximo da realidade, mais organizado, reutilizável e fácil de manter.
+
+🧠 4 Pilares da POO
+
+1. Abstração
+
+	- Foco nas características essenciais de um objeto, ignorando detalhes irrelevantes.
+	- Exemplo: Um carro pode ser representado por atributos como cor, modelo, ano e métodos como acelerar(), frear().
+
+2. Encapsulamento
+
+	- Protege os dados do objeto, permitindo acesso apenas por meio de métodos específicos (getters e setters).
+	- Esconde detalhes internos da implementação.
+	- 🔒 Princípio da Caixa-Preta.
+
+--
+
+public class ContaBancaria {
+    private double saldo;
+
+    public void depositar(double valor) {
+        saldo += valor;
+    }
+
+    public double consultarSaldo() {
+        return saldo;
+    }
+}
+
+3. Herança
+
+	- Permite que uma classe herde atributos e métodos de outra.
+	- Promove reutilização de código.
+	- Usa a palavra-chave extends.
+
+--
+
+public class Animal {
+    public void comer() {
+        System.out.println("Este animal está comendo.");
+    }
+}
+
+public class Cachorro extends Animal {
+    public void latir() {
+        System.out.println("O cachorro está latindo.");
+    }
+}
+
+---
+
+4. Polimorfismo
+
+Permite que objetos de classes diferentes sejam tratados como objetos de uma classe base comum.
+Um mesmo método pode ter comportamentos diferentes.
+
+Tipos:
+
+	Sobrecarga (Overload) → Mesmo nome, parâmetros diferentes.
+	Sobrescrita (Override) → Mesmo nome, mesma assinatura, mas comportamento redefinido na subclasse.
+
+--
+
+// Sobrecarga
+public void som(String tipo) { }
+public void som(int intensidade) { }
+
+// Sobrescrita
+@Override
+public void comer() {
+    System.out.println("O cachorro está comendo ração.");
+}
+
+---
+
+🏗️ Componentes Básicos de POO em Java
+
+Conceito		Descrição											Exemplo
+Classe			Molde que define os atributos e comportamentos		public class Carro {}
+Objeto			Instância de uma classe								Carro meuCarro = new Carro();
+Atributo		Propriedades do objeto								String cor;
+Método			Ações do objeto										void acelerar() {}
+Construtor		Método especial para criar objetos					Carro(String cor) { this.cor = cor; }
+
+----
+
+💡 Exemplo Prático Completo
+
+public class Carro {
+    // Atributos
+    private String modelo;
+    private int ano;
+    private String cor;
+
+    // Construtor
+    public Carro(String modelo, int ano, String cor) {
+        this.modelo = modelo;
+        this.ano = ano;
+        this.cor = cor;
+    }
+
+    // Métodos
+    public void acelerar() {
+        System.out.println(modelo + " está acelerando!");
+    }
+
+    public void frear() {
+        System.out.println(modelo + " está freando!");
+    }
+
+    // Getters
+    public String getModelo() {
+        return modelo;
+    }
+
+    // Setters
+    public void setModelo(String modelo) {
+        this.modelo = modelo;
+    }
+}
+
+---
+
+Criando um objeto e utilizando:
+
+public class Main {
+    public static void main(String[] args) {
+        Carro meuCarro = new Carro("Fox", 2014, "Preto");
+        meuCarro.acelerar();
+        meuCarro.frear();
+    }
+}
+
+---
+
+🔥 Benefícios da POO
+
+- Organização do código.
+- Fácil manutenção e expansão.
+- Reutilização de código.
+- Aumento na legibilidade.
+- Facilita testes e debugging.
+
+---
+
+🚨 Exceções em Java – Conceito e Uso
+
+📜 O que são Exceções?
+
+- São eventos que ocorrem durante a execução de um programa, que interrompem o fluxo normal quando algo
+  inesperado acontece (ex.: divisão por zero, arquivo não encontrado, conexão perdida).
+
+- São objetos que herdam da classe base Throwable.
+
+🔥 Hierarquia das Exceções
+
+Throwable
+ ├── Error → Erros do sistema (Ex.: OutOfMemoryError)
+ └── Exception → Erros tratáveis
+      ├── Checked Exceptions → Obrigatório tratar (ex.: IOException, SQLException)
+      └── Unchecked Exceptions → Erros de programação (RuntimeException e subclasses)
+
+--
+
+🧠 Tipos de Exceções
+
+Tipo					Descrição															Exemplo
+---------------------------------------------------------------------------------------------------------------------------------------
+Checked Exceptions		Obrigatório tratar com try-catch ou declarar com throws				IOException, SQLException
+Unchecked Exceptions	Não obrigatório tratar (erros de lógica)							NullPointerException, ArithmeticException
+Error					Problemas graves do sistema, não devem ser tratados pelo app		OutOfMemoryError
+
+--
+
+🎯 Sintaxe do try...catch
+
+✔️ Exemplo básico com try...catch:
+
+public class ExemploTryCatch {
+    public static void main(String[] args) {
+        try {
+            int resultado = 10 / 0;
+            System.out.println("Resultado: " + resultado);
+        } catch (ArithmeticException e) {
+            System.out.println("Erro: divisão por zero!");
+        }
+        System.out.println("Programa continua...");
+    }
+}
+
+
+Erro: divisão por zero!
+Programa continua...
+
+---
+
+✔️ Tratando múltiplas exceções:
+
+public class ExemploMultiCatch {
+    public static void main(String[] args) {
+        try {
+            String texto = null;
+            System.out.println(texto.length());
+        } catch (ArithmeticException e) {
+            System.out.println("Erro de cálculo.");
+        } catch (NullPointerException e) {
+            System.out.println("Variável não pode ser nula.");
+        }
+    }
+}
+
+---
+
+✔️ Usando try-catch-finally:
+
+public class ExemploFinally {
+    public static void main(String[] args) {
+        try {
+            int[] numeros = {1, 2, 3};
+            System.out.println(numeros[5]);  // Erro de índice
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Índice fora dos limites!");
+        } finally {
+            System.out.println("Bloco finally sempre é executado.");
+        }
+    }
+}
+
+
+---
+
+🚩 Usando throws para Propagar Exceções
+
+- Quando você não quer ou não pode tratar a exceção no método atual, pode propagá-la usando throws.
+
+✔️ Exemplo com throws:
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class LeitorArquivo {
+    public void lerArquivo() throws IOException {
+        BufferedReader leitor = new BufferedReader(new FileReader("arquivo.txt"));
+        String linha = leitor.readLine();
+        System.out.println("Linha lida: " + linha);
+        leitor.close();
+    }
+
+    public static void main(String[] args) {
+        LeitorArquivo leitor = new LeitorArquivo();
+        try {
+            leitor.lerArquivo();
+        } catch (IOException e) {
+            System.out.println("Erro ao ler o arquivo: " + e.getMessage());
+        }
+    }
+}
+
+✔️ Aqui, o método lerArquivo() declara que pode lançar IOException, e quem chama é obrigado a tratar.
+
+---
+
+🔥 Quando usar try...catch e quando usar throws?
+
+| Situação                                             | Solução           |
+| ---------------------------------------------------- | ----------------- |
+| Você **quer tratar** no local                        | Use `try...catch` |
+| Você **não quer tratar** ali, mas sim quem te chamou | Use `throws`      |
+
+
+---
+
+🚀 Criando sua própria Exceção (Custom Exception)
+
+public class SaldoInsuficienteException extends Exception {
+    public SaldoInsuficienteException(String mensagem) {
+        super(mensagem);
+    }
+}
+
+--
+
+Usando:
+
+public class Conta {
+    private double saldo = 100;
+
+    public void sacar(double valor) throws SaldoInsuficienteException {
+        if (valor > saldo) {
+            throw new SaldoInsuficienteException("Saldo insuficiente.");
+        }
+        saldo -= valor;
+    }
+
+    public static void main(String[] args) {
+        Conta conta = new Conta();
+        try {
+            conta.sacar(200);
+        } catch (SaldoInsuficienteException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+}
+
+---
+
+💎 Melhores Práticas com Exceções
+
+✅ Nunca use exceções para controle de fluxo normal.
+✅ Capture exceções específicas, evite capturar Exception de forma genérica (a não ser que seja último recurso).
+✅ Sempre feche recursos (arquivo, conexão, etc.) no bloco finally ou usando try-with-resources.
+✅ Crie exceções personalizadas para regras de negócio específicas.
+✅ Nunca capture Error (ex.: OutOfMemoryError).
+
+----
+
+🔐 Modificadores de Acesso em Java (Seletores de Visibilidade)
+
+🚦 Tipos de modificadores:
+
+| Modificador                       | Visível para...                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------- |
+| **`public`**                      | **Todos.** Qualquer classe, em qualquer pacote.                                              |
+| **`protected`**                   | Classes no **mesmo pacote** e também em **subclasses**, mesmo que estejam em outros pacotes. |
+| **`default`** (sem escrever nada) | Somente para classes no **mesmo pacote**.                                                    |
+| **`private`**                     | Somente dentro da **própria classe**.                                                        |
+
+--
+
+📦 Relação com Pacotes (package)
+
+Um pacote agrupa classes relacionadas. O modificador de acesso determina se uma classe, atributo ou método
+pode ser acessado dentro do pacote, fora do pacote ou apenas por herança.
+
+Se não especificar um pacote, as classes estão no pacote default (não recomendado em projetos profissionais).
+
+--
+
+📜 Tabela Resumo Visual
+
+| Modificador   | Mesma Classe | Mesmo Pacote  | Subclasse (Outro Pacote) | Outros Pacotes   |
+| ------------- | ------------ | ------------  | ------------------------ | --------------   |
+| **public**    | ✔️           | ✔️           | ✔️                       | ✔️              |
+| **protected** | ✔️           | ✔️           | ✔️                       | ❌              |
+| *(default)*   | ✔️           | ✔️           | ❌                       | ❌              |
+| **private**   | ✔️           | ❌           | ❌                       | ❌              |
+
+
+🔧 Aplicação dos Modificadores
+
+🔸 Para Classes (top-level)
+
+- Pode ser apenas:
+	- public → A classe pode ser acessada de qualquer lugar.
+	- (default) (sem modificador) → Visível apenas dentro do mesmo pacote.
+
+❌ Não pode ser private nem protected para classes top-level.
+
+--
+
+✔️ Exemplo:
+
+package br.com.banco;
+
+// Classe pública, acessível em qualquer lugar
+public class Conta { }
+
+// Classe com visibilidade default, só dentro do mesmo pacote
+class Cliente { }
+
+---
+
+🔸 Para Atributos e Métodos
+✔️ Podem usar todos os modificadores: public, protected, default e private.
+
+✔️ Exemplo:
+
+package br.com.banco;
+
+public class Conta {
+    // Atributos com diferentes visibilidades
+    public String titular;         // Acessível em qualquer lugar
+    protected double saldo;        // Acessível no mesmo pacote ou por herança
+    double limite;                 // (default) → Acessível no mesmo pacote
+    private String senha;          // Somente dentro da própria classe
+
+    // Método público
+    public void depositar(double valor) {
+        saldo += valor;
+    }
+
+    // Método protegido
+    protected void atualizarSaldo() {
+        saldo += 10;
+    }
+
+    // Método default
+    void aplicarTarifa() {
+        saldo -= 5;
+    }
+
+    // Método privado
+    private void autenticar(String senhaInformada) {
+        if (senha.equals(senhaInformada)) {
+            System.out.println("Autenticado!");
+        }
+    }
+}
+
+--
+
+🔗 Acesso entre Pacotes e Herança
+
+✔️ Exemplo de acesso com protected:
+
+package br.com.banco;
+
+public class Conta {
+    protected double saldo = 100;
+}
+
+--
+
+package br.com.app;
+
+import br.com.banco.Conta;
+
+public class ContaCorrente extends Conta {
+    public void exibirSaldo() {
+        System.out.println("Saldo: " + saldo);  // Funciona pois é protected e há herança
+    }
+}
+
+✔️ Se fosse default ou private, não seria possível acessar fora do pacote, mesmo herdando.
+
+--
+
+❌ Tentativas inválidas:
+
+// Não permitido
+private class Cliente { }     // ❌ Classes top-level não podem ser private
+protected class Produto { }   // ❌ Nem protected
+
+--
+
+💡 Boas Práticas com Modificadores de Acesso
+
+✅ Use private para proteger os dados e expor comportamentos apenas via métodos (getters/setters ou métodos de negócio).
+✅ Use protected quando deseja que apenas classes filhas ou do mesmo pacote possam acessar.
+✅ Evite public em atributos — use métodos públicos para acesso controlado.
+✅ Deixe classes com visibilidade default se elas forem utilitárias internas de um pacote.
+✅ Só use public em classes e métodos realmente necessários para consumo externo.
+
+--
+
+🏛️ Organização Profissional de Projetos em Java com Packages
+
+✔️ Estrutura comum:
+
+br/com/meuprojeto
+ ├── model         → Classes de domínio (entidades)
+ ├── repository    → Acesso a dados
+ ├── service       → Regras de negócio
+ ├── controller    → API ou interface com o usuário
+ └── util          → Classes utilitárias
+
+Exemplo de declaração:
+
+package br.com.meuprojeto.model;
+
+public class Cliente {
+    // ...
+}
+
+
+---
+
+🧠 O que é uma Interface em Java?
+
+- Uma interface define um contrato, ou seja, um conjunto de métodos que uma classe deve implementar.
+- Ela não tem implementação concreta (antes do Java 8), servindo apenas como uma assinatura do que deve ser feito.
+- A partir do Java 8, pode ter métodos default (com implementação) e métodos estáticos.
+- Desde o Java 9, também pode ter métodos privados (para uso interno da própria interface).
+
+🚩 Sintaxe Básica da Interface
+
+public interface Veiculo {
+    void acelerar();
+    void frear();
+}
+
+✔️ Uma classe que implementa essa interface:
+
+public class Carro implements Veiculo {
+
+    @Override
+    public void acelerar() {
+        System.out.println("Carro acelerando");
+    }
+
+    @Override
+    public void frear() {
+        System.out.println("Carro freando");
+    }
+}
+
+🚀 Exemplo com métodos default na Interface (Java 8+)
+
+public interface Veiculo {
+    void acelerar();
+    void frear();
+
+    default void buzinar() {
+        System.out.println("Buzinando...");
+    }
+}
+
+✔️ A classe que implementa não é obrigada a sobrescrever o método buzinar().
+
+✅ Interface pode ter...
+
+| Tipo              | Interface pode?                                           |
+| ----------------- | --------------------------------------------------------- |
+| Atributos         | ✔️ Apenas **`public static final`** (constantes)          |
+| Métodos sem corpo | ✔️ Até Java 7 obrigatório<br>✔️ Ainda possível no Java 8+ |
+| Métodos `default` | ✔️ Desde Java 8                                           |
+| Métodos `static`  | ✔️ Desde Java 8                                           |
+| Métodos `private` | ✔️ Desde Java 9                                           |
+| Construtor        | ❌ Nunca                                                   |
+
+
+--
+
+🏛️ O que é uma Classe Abstrata?
+
+Uma classe abstrata é uma classe que não pode ser instanciada diretamente.
+
+Pode ter:
+
+- Métodos abstratos (sem corpo) → obrigam as subclasses a implementar.
+- Métodos concretos (com implementação).
+- Pode ter atributos e construtores.
+
+🚩 Sintaxe da Classe Abstrata
+
+public abstract class Veiculo {
+    abstract void acelerar();  // Método abstrato
+    abstract void frear();
+
+    public void buzinar() {     // Método concreto
+        System.out.println("Buzinando...");
+    }
+}
+
+✔️ Classe que estende:
+
+public class Carro extends Veiculo {
+    @Override
+    public void acelerar() {
+        System.out.println("Carro acelerando");
+    }
+
+    @Override
+    public void frear() {
+        System.out.println("Carro freando");
+    }
+}
+
+⚖️ Comparativo: Interface vs Classe Abstrata
+
+| Característica            | **Interface**                                      | **Classe Abstrata**                              |
+| ------------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| **Herança múltipla**      | ✔️ Permite implementar **múltiplas interfaces**    | ❌ Só pode herdar **uma classe abstrata**         |
+| **Métodos concretos**     | ✔️ Desde Java 8 com `default` e `static`           | ✔️ Pode ter qualquer método concreto             |
+| **Métodos abstratos**     | ✔️ Todos são abstratos por padrão (até Java 7)     | ✔️ Pode ter um ou mais métodos abstratos         |
+| **Atributos**             | ✔️ Apenas `public static final` (constantes)       | ✔️ Qualquer tipo: `private`, `protected`, etc.   |
+| **Construtores**          | ❌ Não possui                                      | ✔️ Pode ter                                      |
+| **Finalidade**            | Definir um **contrato**                            | Definir uma **base com comportamento comum**     |
+| **Hierarquia**            | Usada para **capacidades** (`interface Buzinavel`) | Usada para **tipos e herança** (`class Veiculo`) |
+| **Exemplo no mundo real** | `Comparable`, `Serializable`                       | `Animal`, `Veiculo`, `Pessoa`                    |
+
+💡 Quando usar cada uma?
+
+| **Interface**                                                                | **Classe Abstrata**                                            |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Quando várias classes não relacionadas devem compartilhar um contrato comum. | Quando há uma relação de herança clara (É UM).                 |
+| Se preocupa mais com **"o que faz"**.                                        | Se preocupa com **"o que é"**.                                 |
+| Permite herança múltipla (implementação de várias interfaces).               | Não permite herança múltipla, mas permite compartilhar código. |
+| Ex.: `Comparable`, `Runnable`, `List`.                                       | Ex.: `Animal`, `Conta`, `Funcionario`.                         |
+
+---
+
+🚀 Exemplo completo comparando Interface e Classe Abstrata
+
+
+// Interface
+public interface Buzinavel {
+    void buzinar();
+}
+
+// Classe abstrata
+public abstract class Veiculo {
+    abstract void acelerar();
+    abstract void frear();
+
+    public void status() {
+        System.out.println("Veículo pronto para uso.");
+    }
+}
+
+// Classe concreta
+public class Carro extends Veiculo implements Buzinavel {
+    @Override
+    public void acelerar() {
+        System.out.println("Carro acelerando.");
+    }
+
+    @Override
+    public void frear() {
+        System.out.println("Carro freando.");
+    }
+
+    @Override
+    public void buzinar() {
+        System.out.println("Carro buzinando.");
+    }
+}
+
+
+✔️ Aqui o Carro herda de Veiculo (classe abstrata) e implementa Buzinavel (interface).
+
+--
+
+🔥 Resumo Prático:
+
+✔️ Interface: define um contrato, comportamento, capacidade → "SABE FAZER ALGO".
+✔️ Classe Abstrata: define uma estrutura comum, identidade, relação de herança → "É UM TIPO DE".
+
+---
+
+📚 Coleções em Java + Streams, List e Filter
+
+🔸 O que são Coleções?
+
+As Coleções em Java fazem parte do pacote java.util e são estruturas que permitem armazenar, manipular e processar grupos de objetos de forma eficiente.
+
+✔️ Principais interfaces da API de Coleções:
+
+	List → Lista ordenada, permite elementos repetidos.
+	Set → Conjunto, não permite elementos repetidos.
+	Map → Mapeamento de chave → valor.
+
+--
+
+🗂️ List – Lista Ordenada
+
+- Permite elementos duplicados.
+- Mantém a ordem de inserção.
+- Acesso por índice.
+
+✔️ Implementações comuns:
+
+- ArrayList → Lista baseada em array (mais rápida para leitura).
+- LinkedList → Lista encadeada (mais rápida para inserções/remoções no meio).
+
+✅ Exemplo com List:
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ExemploList {
+    public static void main(String[] args) {
+        List<String> nomes = new ArrayList<>();
+        nomes.add("André");
+        nomes.add("Lucas");
+        nomes.add("Maria");
+        nomes.add("André");  // Permite repetição
+
+        for (String nome : nomes) {
+            System.out.println(nome);
+        }
+    }
+}
+
+--
+
+🔥 Streams – Processamento Funcional de Coleções
+
+Desde o Java 8, é possível processar coleções de forma funcional usando a API de Streams.
+
+✔️ Um Stream é uma sequência de elementos que suporta operações encadeadas, como:
+
+- filter()	→ Filtrar elementos.
+- map()		→ Transformar elementos.
+- sorted()	→ Ordenar.
+- collect()	→ Coletar o resultado (ex.: em uma lista).
+- forEach() → Iterar (consumir) elementos.
+
+🚀 Exemplos práticos com filter() e List:
+
+✔️ Filtrando dados:
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Arrays;
+
+public class ExemploStreamFilter {
+    public static void main(String[] args) {
+        List<String> nomes = Arrays.asList("André", "Lucas", "Maria", "Ana", "Leonardo");
+
+        List<String> filtrados = nomes.stream()
+            .filter(nome -> nome.startsWith("A"))
+            .collect(Collectors.toList());
+
+        System.out.println("Nomes que começam com A: " + filtrados);
+    }
+}
+
+✔️ Saída:
+Nomes que começam com A: [André, Ana]
+
+---
+
+✔️ Filtrando números:
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Arrays;
+
+public class ExemploNumeros {
+    public static void main(String[] args) {
+        List<Integer> numeros = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+        List<Integer> pares = numeros.stream()
+            .filter(n -> n % 2 == 0)
+            .collect(Collectors.toList());
+
+        System.out.println("Números pares: " + pares);
+    }
+}
+
+✔️ Saída:
+Números pares: [2, 4, 6, 8, 10]
+
+---
+
+🔧 Outras operações úteis com Streams:
+
+| Operação      | Descrição                             | Exemplo                     |
+| ------------- | ------------------------------------- | --------------------------- |
+| `map()`       | Transforma elementos                  | `.map(String::toUpperCase)` |
+| `sorted()`    | Ordena                                | `.sorted()`                 |
+| `count()`     | Conta elementos                       | `.count()`                  |
+| `anyMatch()`  | Verifica se **algum** elemento atende | `.anyMatch(e -> e > 5)`     |
+| `allMatch()`  | Verifica se **todos** atendem         | `.allMatch(e -> e > 0)`     |
+| `noneMatch()` | Verifica se **nenhum** atende         | `.noneMatch(e -> e < 0)`    |
+
+🎯 Exemplo Completo com várias operações:
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class ExemploCompleto {
+    public static void main(String[] args) {
+        List<String> nomes = Arrays.asList("André", "Lucas", "Ana", "Leonardo", "Amanda");
+
+        List<String> resultado = nomes.stream()
+            .filter(nome -> nome.length() > 3)         // Nomes com mais de 3 letras
+            .map(String::toUpperCase)                  // Converte para maiúsculas
+            .sorted()                                  // Ordena
+            .collect(Collectors.toList());             // Coleta para uma lista
+
+        System.out.println("Resultado: " + resultado);
+    }
+}
+
+✔️ Saída:
+Resultado: [AMANDA, ANDRÉ, LEONARDO, LUCAS]
+
+---
+
+💡 List + Stream + Filter = Poder Total 🚀
+
+- Processamento mais limpo, legível e eficiente.
+- Facilita operações complexas com poucas linhas de código.
+- Combina muito bem com funções lambda (->) introduzidas no Java 8.
+
+🔥 Resumo Visual – Diferença entre Iteração Tradicional e Stream
+
+| Tradicional                 | Com Stream                                   |
+| --------------------------- | -------------------------------------------- |
+| Usa loops (`for`, `while`)  | Usa pipelines (`stream().filter().map()...`) |
+| Código mais verboso         | Código mais limpo e expressivo               |
+| Mais controle sobre o fluxo | Foco no **"o que" fazer, não no "como"**     |
+
+----
+
+
+⚡ Desempenho e Paralelismo com Streams em Java
+
+🔥 Streams Sequenciais vs Paralelos
+
+🔹 Stream Sequencial
+- Executa as operações em uma única thread, de forma linear, na ordem dos elementos.
+
+List<Integer> numeros = List.of(1, 2, 3, 4, 5);
+numeros.stream()
+       .forEach(System.out::println);
+
+✔️ Processa um elemento de cada vez, na ordem.
+
+---
+
+🔹 Parallel Stream
+
+- Executa as operações de forma paralela, utilizando múltiplas threads do pool de threads do Java (ForkJoinPool.commonPool()).
+- Divide a coleção em pedaços e processa cada pedaço em uma thread separada (divide and conquer).
+
+List<Integer> numeros = List.of(1, 2, 3, 4, 5);
+numeros.parallelStream()
+       .forEach(System.out::println);
+
+⚠️ A ordem de processamento pode ser diferente.
+
+---
+
+🚀 Quando usar parallelStream()?
+
+✔️ Cenários favoráveis:
+
+- Grandes volumes de dados.
+- Operações independentes, que não precisam ser executadas em sequência.
+- Operações CPU-bound (processamento intenso) e não IO-bound (espera por rede, disco, etc.).
+
+❌ Evitar quando:
+
+- Processamento pequeno (overhead pode ser maior que o ganho).
+- Operações que dependem de ordem.
+- Operações com acesso a recursos compartilhados sem sincronização (pode gerar problemas de concorrência).
+
+---
+
+🧠 Exemplo Prático de Ganho de Desempenho
+
+🔥 Simulação de processamento pesado:
+
+import java.util.List;
+import java.util.stream.IntStream;
+
+public class ParaleloVsSequencial {
+    public static void main(String[] args) {
+        List<Integer> numeros = IntStream.rangeClosed(1, 1000)
+                                          .boxed()
+                                          .toList();
+
+        long inicioSeq = System.currentTimeMillis();
+        numeros.stream()
+                .map(ParaleloVsSequencial::processar)
+                .toList();
+        long fimSeq = System.currentTimeMillis();
+        System.out.println("Tempo Sequencial: " + (fimSeq - inicioSeq) + "ms");
+
+        long inicioPar = System.currentTimeMillis();
+        numeros.parallelStream()
+                .map(ParaleloVsSequencial::processar)
+                .toList();
+        long fimPar = System.currentTimeMillis();
+        System.out.println("Tempo Paralelo: " + (fimPar - inicioPar) + "ms");
+    }
+
+    private static int processar(int numero) {
+        try {
+            Thread.sleep(1);  // Simula uma operação pesada (1ms por item)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return numero * 2;
+    }
+}
+
+✔️ Resultado típico:
+
+Sequencial: ~1000ms
+Paralelo: ~200ms a 400ms (dependendo do número de núcleos da máquina)
+
+---
+
+⚙️ Cuidados Importantes com parallelStream()
+
+| 🚩 Problema                 | 💡 Solução                                                 |
+| --------------------------- | ---------------------------------------------------------- |
+| Perda de ordem              | Use `forEachOrdered()` se necessário.                      |
+| Concorrência em recursos    | Evite modificar recursos compartilhados sem sincronização. |
+| Sobrecarga em tarefas leves | Não usar para listas pequenas.                             |
+| Thread safety               | Use coleções thread-safe ou sincronize.                    |
+
+-----
+
+💡 Mantendo Ordem no Paralelismo
+
+Se você quiser garantir a ordem mesmo no processamento paralelo:
+
+List.of("A", "B", "C", "D").parallelStream()
+    .forEachOrdered(System.out::println);
+
+✔️ Garante que a saída seja sempre A, B, C, D.
+
+--
+
+🚦 Atenção com Operações Statefull
+
+- Operações que dependem de estado anterior (como distinct(), sorted(), limit()) podem gerar perda de performance em paralelo,
+  pois exigem sincronização interna.
+
+---
+
+🏗️ Alternativas Profissionais a parallelStream()
+
+✔️ ExecutorService (Controle total das threads)
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ExemploExecutor {
+    public static void main(String[] args) {
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+
+        executor.submit(() -> System.out.println("Tarefa em thread"));
+
+        executor.shutdown();
+    }
+}
+
+✔️ Útil quando você quer controle explícito das threads, retries, timeout, filas, etc.
+
+---
+
+✔️ CompletableFuture (Programação assíncrona)
+
+import java.util.concurrent.CompletableFuture;
+
+public class ExemploCompletable {
+    public static void main(String[] args) {
+        CompletableFuture.runAsync(() -> {
+            System.out.println("Tarefa assíncrona");
+        });
+
+        System.out.println("Main continua...");
+    }
+}
+
+✔️ Programação assíncrona e não bloqueante.
+
+---
+
+🔥 Resumo: Quando Usar Paralelismo com Stream?
+
+| Tarefa                           | `stream()` | `parallelStream()`        |
+| -------------------------------- | ---------- | ------------------------- |
+| Lista pequena                    | ✔️ Melhor  | ❌ Overhead                |
+| Lista média/grande               | ✔️         | ✔️ Potencial ganho        |
+| Operações independentes          | ✔️         | ✔️ Recomendo              |
+| Precisa manter ordem             | ✔️         | ⚠️ Com `forEachOrdered()` |
+| Acesso a recursos compartilhados | ✔️ Seguro  | ⚠️ Cuidado                |
+
+🚀 Melhores Práticas
+
+🔥 Teste: Sempre meça (System.currentTimeMillis() ou ferramentas de benchmark).
+⚠️ Nem todo código fica mais rápido com paralelismo — às vezes pode ser até mais lento.
+✔️ Para paralelismo profissional e controle total → ExecutorService ou CompletableFuture.
+
+---
+
+🔥 Comparação de performance: Streams vs Loops tradicionais.
+🔥 Boas práticas de concorrência em Java (thread-safe, locks, semáforos, etc).
+
+🔥 Classes Abstratas e Interfaces (ok)
+🔥 Padrões de Projeto (Design Patterns)
+🔥 Streams, Lambda e Programação Funcional (ok)
+🔥 Coleções (List, Set, Map) (ok)
+🔥 Padrões de Projeto (Design Patterns)
+🔥 Boas práticas e Clean Code no Java

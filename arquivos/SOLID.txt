@@ -1,0 +1,248 @@
+SOLID
+
+🏛️ Princípios SOLID — Robert C. Martin (Tio Bob)
+
+✅ S — Single Responsibility Principle (SRP)
+✅ O — Open/Closed Principle (OCP)
+✅ L — Liskov Substitution Principle (LSP)
+✅ I — Interface Segregation Principle (ISP)
+✅ D — Dependency Inversion Principle (DIP)
+
+🔹 S — Single Responsibility Principle (SRP)
+
+✔️ Princípio da Responsabilidade Única
+
+- “Uma classe deve ter apenas uma única razão para mudar.”
+- Cada classe, módulo ou função deve ter uma única responsabilidade bem definida.
+
+🚫 Exemplo Ruim (Quebra do SRP):
+
+public class ClienteService {
+    public void salvar(Cliente cliente) {
+        // Valida dados
+        // Salva no banco
+        // Envia e-mail de confirmação
+    }
+}
+
+✅ Aplicando SRP (Separação de responsabilidades):
+
+public class ClienteService {
+    private ClienteRepository repository;
+    private EmailService emailService;
+
+    public void salvar(Cliente cliente) {
+        repository.salvar(cliente);
+        emailService.enviarEmailDeBoasVindas(cliente);
+    }
+}
+
+✔️ Cada classe faz uma coisa só.
+
+------
+
+🔹 O — Open/Closed Principle (OCP)
+
+✔️ Princípio Aberto/Fechado
+
+- “Entidades devem estar abertas para extensão, mas fechadas para modificação.”
+- Você deve conseguir adicionar novos comportamentos sem alterar o código existente.
+
+🚫 Exemplo Ruim (violando OCP):
+
+public class CalculadoraDesconto {
+    public double calcular(String tipoCliente, double valor) {
+        if (tipoCliente.equals("VIP")) {
+            return valor * 0.9;
+        } else if (tipoCliente.equals("NORMAL")) {
+            return valor * 0.95;
+        }
+        return valor;
+    }
+}
+
+✅ Aplicando OCP com Polimorfismo:
+
+public interface Desconto {
+    double aplicar(double valor);
+}
+
+public class DescontoVIP implements Desconto {
+    public double aplicar(double valor) {
+        return valor * 0.9;
+    }
+}
+
+public class DescontoNormal implements Desconto {
+    public double aplicar(double valor) {
+        return valor * 0.95;
+    }
+}
+
+public class CalculadoraDesconto {
+    public double calcular(Desconto desconto, double valor) {
+        return desconto.aplicar(valor);
+    }
+}
+
+✔️ Para adicionar um novo tipo de desconto, cria-se uma nova classe, sem alterar as existentes.
+
+---
+
+🔹 L — Liskov Substitution Principle (LSP)
+
+✔️ Princípio da Substituição de Liskov
+
+- “Se S é subtipo de T, então os objetos de T podem ser substituídos por objetos de S sem afetar o funcionamento do programa.”
+- Subclasses devem ser substituíveis por suas superclasses, mantendo o comportamento.
+
+🚫 Violando LSP:
+
+public class Retangulo {
+    protected int largura;
+    protected int altura;
+
+    public void setLargura(int largura) { this.largura = largura; }
+    public void setAltura(int altura) { this.altura = altura; }
+
+    public int getArea() { return largura * altura; }
+}
+
+public class Quadrado extends Retangulo {
+    @Override
+    public void setLargura(int lado) {
+        super.setLargura(lado);
+        super.setAltura(lado);
+    }
+
+    @Override
+    public void setAltura(int lado) {
+        super.setAltura(lado);
+        super.setLargura(lado);
+    }
+}
+
+✔️ O Quadrado quebra o comportamento esperado de Retangulo.
+
+---
+
+✅ Solução — Não forçar herança onde não faz sentido:
+
+public interface Forma {
+    int getArea();
+}
+
+public class Retangulo implements Forma {
+    private int largura;
+    private int altura;
+
+    public Retangulo(int largura, int altura) {
+        this.largura = largura;
+        this.altura = altura;
+    }
+
+    public int getArea() {
+        return largura * altura;
+    }
+}
+
+public class Quadrado implements Forma {
+    private int lado;
+
+    public Quadrado(int lado) {
+        this.lado = lado;
+    }
+
+    public int getArea() {
+        return lado * lado;
+    }
+}
+
+✔️ Quadrado e Retângulo são tratados como formas, sem quebrar o comportamento.
+
+---
+
+🔹 I — Interface Segregation Principle (ISP)
+
+✔️ Princípio da Segregação de Interfaces
+
+- “Nenhum cliente deve ser forçado a depender de métodos que não usa.”
+- Interfaces devem ser pequenas e específicas, não gigantes e genéricas.
+
+🚫 Violando ISP (Interface gorda):
+
+public interface Maquina {
+    void imprimir();
+    void escanear();
+    void enviarFax();
+}
+
+✔️ Uma impressora simples não precisa de escanear() nem enviarFax().
+
+✅ Aplicando ISP (interfaces específicas):
+
+public interface Impressora {
+    void imprimir();
+}
+
+public interface Scanner {
+    void escanear();
+}
+
+public interface Fax {
+    void enviarFax();
+}
+
+✔️ Cada classe implementa somente o que precisa.
+
+---
+
+🔹 D — Dependency Inversion Principle (DIP)
+
+✔️ Princípio da Inversão de Dependência
+
+- “Dependa de abstrações, não de implementações.”
+- Classes de alto nível não devem depender de classes de baixo nível diretamente, mas sim de interfaces (abstrações).
+
+🚫 Violando DIP (acoplamento direto):
+
+public class ClienteService {
+    private ClienteRepositoryMySQL repository;
+
+    public ClienteService() {
+        this.repository = new ClienteRepositoryMySQL();
+    }
+
+    public void salvar(Cliente cliente) {
+        repository.salvar(cliente);
+    }
+}
+
+--
+
+✅ Aplicando DIP (injeção de dependência e abstração):
+
+public class ClienteService {
+    private ClienteRepository repository;
+
+    public ClienteService(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public void salvar(Cliente cliente) {
+        repository.salvar(cliente);
+    }
+}
+
+✔️ O ClienteService depende da interface ClienteRepository, não de uma implementação concreta.
+
+🏆 Resumo Visual dos Princípios SOLID
+
+| Princípio | Nome                  | Descrição                                          |
+| --------- | --------------------- | -------------------------------------------------- |
+| **S**     | Single Responsibility | Uma classe deve ter uma única responsabilidade.    |
+| **O**     | Open/Closed           | Aberto para extensão, fechado para modificação.    |
+| **L**     | Liskov Substitution   | Subtipos devem ser substituíveis pelos seus tipos. |
+| **I**     | Interface Segregation | Muitas interfaces pequenas são melhores.           |
+| **D**     | Dependency Inversion  | Dependa de abstrações, não de implementações.      |
+

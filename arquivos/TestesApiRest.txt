@@ -1,0 +1,193 @@
+Testes desse projeto
+
+✅ 1. Testes Unitários
+
+📜 Objetivo:
+- Validar o comportamento de unidades isoladas, especialmente os Use Cases.
+
+🏗️ Exemplo — Teste Unitário do Use Case CadastrarClienteUseCase
+
+package br.com.exemplo.application.usecase;
+
+import br.com.exemplo.domain.entity.Cliente;
+import br.com.exemplo.domain.repository.ClienteRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class CadastrarClienteUseCaseTest {
+
+    private ClienteRepository repository;
+    private CadastrarClienteUseCase useCase;
+
+    @BeforeEach
+    void setup() {
+        repository = mock(ClienteRepository.class);
+        useCase = new CadastrarClienteUseCase(repository);
+    }
+
+    @Test
+    void deveCadastrarClienteComSucesso() {
+        Cliente cliente = new Cliente(null, "André Leão", "andre@email.com", "119999999");
+
+        when(repository.salvar(cliente)).thenReturn(new Cliente(1L, "André Leão", "andre@email.com", "119999999"));
+
+        Cliente resultado = useCase.executar(cliente);
+
+        assertNotNull(resultado.getId());
+        assertEquals("André Leão", resultado.getNome());
+        verify(repository, times(1)).salvar(cliente);
+    }
+}
+
+--
+
+🚦 Rodar Testes Unitários
+
+mvn test
+
+---
+
+✅ 2. Testes de Integração
+
+📜 Objetivo:
+
+- Validar a integração dos componentes principais.
+- Verificar se a API funciona de ponta a ponta, incluindo banco de dados (pode ser um banco em memória, como H2).
+
+🏗️ Exemplo — Teste de Integração da API ClienteController
+
+package br.com.exemplo.adapter.controller;
+
+import br.com.exemplo.domain.entity.Cliente;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.*;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class ClienteControllerIntegrationTest {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Test
+    void deveCadastrarEBuscarCliente() {
+        Cliente cliente = new Cliente(null, "Carlos Silva", "carlos@email.com", "119888888");
+
+        ResponseEntity<Cliente> response = restTemplate.postForEntity(
+                "/api/clientes",
+                cliente,
+                Cliente.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getId());
+
+        Cliente clienteSalvo = response.getBody();
+
+        ResponseEntity<Cliente> buscaResponse = restTemplate.getForEntity(
+                "/api/clientes/" + clienteSalvo.getId(),
+                Cliente.class
+        );
+
+        assertEquals(HttpStatus.OK, buscaResponse.getStatusCode());
+        assertEquals("Carlos Silva", buscaResponse.getBody().getNome());
+    }
+
+    @Test
+    void deveListarClientes() {
+        ResponseEntity<Cliente[]> response = restTemplate.getForEntity(
+                "/api/clientes",
+                Cliente[].class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().length >= 0);
+    }
+}
+
+--
+
+🚦 Rodar Testes de Integração
+
+Mesmo comando dos testes unitários:
+
+mvn test
+
+✔️ A anotação @SpringBootTest sobe o contexto da aplicação inteiro.
+
+✅ 3. Documentação da API com Swagger / OpenAPI
+
+🧰 Dependência Maven (Swagger — Springdoc OpenAPI)
+
+Adicione no pom.xml:
+
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.5.0</version>
+</dependency>
+
+
+🔥 Configuração automática (a partir do Springdoc)
+
+✔️ Não precisa criar classes de configuração manual.
+✔️ O Swagger UI estará automaticamente disponível em:
+
+http://localhost:8080/swagger-ui/index.html
+
+✔️ A especificação OpenAPI estará em:
+
+http://localhost:8080/v3/api-docs
+
+✨ Exemplo de customização opcional
+
+package br.com.exemplo.framework;
+
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.OpenAPI;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class SwaggerConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("API de Clientes - Clean Architecture")
+                        .version("1.0.0")
+                        .description("Documentação da API de Clientes seguindo Clean Architecture."));
+    }
+}
+
+---
+
+✅ Swagger UI gerado automaticamente
+
+✔️ Todos os endpoints da API /api/clientes serão documentados:
+
+- POST /api/clientes → Cadastrar cliente
+- GET /api/clientes/{id} → Buscar cliente por ID
+- GET /api/clientes → Listar todos
+- PUT /api/clientes/{id} → Atualizar cliente
+- DELETE /api/clientes/{id} → Deletar cliente
+
+🚀 Checklist Completo
+
+| Item                    | Status |
+| ----------------------  | ------ |
+| ✅ Testes Unitários     | ✔️     |
+| ✅ Testes de Integração | ✔️     |
+| ✅ Documentação Swagger | ✔️     |

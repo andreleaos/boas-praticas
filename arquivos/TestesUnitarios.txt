@@ -1,0 +1,216 @@
+Testes Unitarios
+
+Perfeito, bora avançar para o mundo dos Testes Unitários em Java, que é absolutamente essencial
+para garantir a qualidade, robustez e evolução segura do código.
+
+🧠 Testes Unitários — Conceitos e Prática em Java
+
+🔥 O que são Testes Unitários?
+
+- São testes que verificam o comportamento de uma unidade de código isolada, geralmente métodos ou classes.
+- Garantem que cada parte do código funciona como esperado de forma isolada.
+- Detectam erros logo no desenvolvimento, antes de subir para ambientes maiores.
+
+🏗️ Estrutura dos Testes Unitários
+
+- 📦 Ferramenta mais utilizada: JUnit (JUnit 5 é o mais atual)
+- 🧰 Para mocks e stubs: Mockito
+
+🔧 Dependências no Maven
+
+<dependencies>
+    <!-- JUnit 5 -->
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.9.3</version>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- Mockito -->
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>5.7.0</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+
+---
+
+🚦 Anotações principais no JUnit 5
+
+| Anotação       | Descrição                                 |
+| -------------- | ----------------------------------------- |
+| `@Test`        | Define um método como teste unitário.     |
+| `@BeforeEach`  | Executa antes de cada teste.              |
+| `@AfterEach`   | Executa após cada teste.                  |
+| `@BeforeAll`   | Executa uma vez antes de todos os testes. |
+| `@AfterAll`    | Executa uma vez após todos os testes.     |
+| `@DisplayName` | Dá um nome legível para o teste.          |
+| `@Disabled`    | Desabilita um teste temporariamente.      |
+
+🔥 Exemplo Prático de Teste Unitário Simples
+
+public class Calculadora {
+    public int somar(int a, int b) {
+        return a + b;
+    }
+
+    public int dividir(int a, int b) {
+        if (b == 0) {
+            throw new IllegalArgumentException("Divisão por zero não permitida.");
+        }
+        return a / b;
+    }
+}
+
+✔️ Teste Unitário com JUnit 5:
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class CalculadoraTest {
+
+    Calculadora calculadora = new Calculadora();
+
+    @Test
+    @DisplayName("Deve somar dois números corretamente")
+    void deveSomarDoisNumeros() {
+        int resultado = calculadora.somar(5, 7);
+        assertEquals(12, resultado);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao dividir por zero")
+    void deveLancarExcecaoDivisaoPorZero() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            calculadora.dividir(10, 0);
+        });
+
+        assertEquals("Divisão por zero não permitida.", exception.getMessage());
+    }
+}
+
+✔️ Passa se:
+
+- O método de soma retorna corretamente.
+- A divisão por zero lança exceção corretamente.
+
+---
+
+🔥 Testes com Dependências — Usando Mockito
+
+✔️ Cenário: Uma classe que depende de um repositório (DAO).
+
+public class ClienteService {
+
+    private ClienteRepository repository;
+
+    public ClienteService(ClienteRepository repository) {
+        this.repository = repository;
+    }
+
+    public String buscarNomeDoClientePorId(Long id) {
+        Cliente cliente = repository.buscarPorId(id);
+        if (cliente == null) {
+            throw new IllegalArgumentException("Cliente não encontrado.");
+        }
+        return cliente.getNome();
+    }
+}
+
+
+✔️ Interface simulada:
+
+public interface ClienteRepository {
+    Cliente buscarPorId(Long id);
+}
+
+
+✔️ Classe de modelo:
+
+public class Cliente {
+    private Long id;
+    private String nome;
+
+    public Cliente(Long id, String nome) {
+        this.id = id;
+        this.nome = nome;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+}
+
+
+✔️ Teste com Mockito:
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+public class ClienteServiceTest {
+
+    private ClienteRepository repository;
+    private ClienteService service;
+
+    @BeforeEach
+    void setup() {
+        repository = mock(ClienteRepository.class);
+        service = new ClienteService(repository);
+    }
+
+    @Test
+    @DisplayName("Deve retornar o nome do cliente quando encontrado")
+    void deveRetornarNomeCliente() {
+        when(repository.buscarPorId(1L)).thenReturn(new Cliente(1L, "André"));
+
+        String nome = service.buscarNomeDoClientePorId(1L);
+
+        assertEquals("André", nome);
+        verify(repository, times(1)).buscarPorId(1L);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando cliente não for encontrado")
+    void deveLancarExcecaoQuandoClienteNaoEncontrado() {
+        when(repository.buscarPorId(2L)).thenReturn(null);
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> {
+            service.buscarNomeDoClientePorId(2L);
+        });
+
+        assertEquals("Cliente não encontrado.", ex.getMessage());
+    }
+}
+
+🔥 Pirâmide de Testes — Boas Práticas
+
+| Nível             | Descrição                            | Exemplo                                 |
+| ----------------- | ------------------------------------ | --------------------------------------- |
+| 🧠 **Unitário**   | Testa métodos isolados               | `CalculadoraTest`, `ClienteServiceTest` |
+| 🔗 **Integração** | Testa a integração entre componentes | API + Banco + Serviço + DAO             |
+| 🧪 **E2E/UI**     | Testa o sistema de ponta a ponta     | Testes via Selenium, RestAssured, etc.  |
+
+🏆 Boas Práticas nos Testes Unitários
+
+- ✅ Nome dos testes devem indicar claramente o que está sendo testado.
+- ✅ Um teste = um cenário.
+- ✅ Configure o ambiente no @BeforeEach.
+- ✅ Isolamento: Nunca dependa de banco real ou serviços externos.
+- ✅ Cobertura de código é importante, mas qualidade dos testes importa mais do que quantidade.
+- ✅ Mocks para dependências externas (banco, APIs, arquivos).
+
+🚀 Ferramentas de Suporte
+
+🔹 JUnit 5 → Framework de testes.
+🔹 Mockito → Criação de mocks e spies.
+🔹 AssertJ → Assertions mais legíveis e poderosas.
+🔹 RestAssured → Testes de APIs REST.
+🔹 Testcontainers → Banco real em container para testes de integração.
+

@@ -1,0 +1,181 @@
+
+RabbitMQ
+
+RabbitMQ com Java, abordando os conceitos principais e construindo um exemplo de Producer (Produtor) e Consumer (Consumidor).
+
+ 🏛️ O que é RabbitMQ?
+
+✔️ RabbitMQ é um sistema de mensageria baseado no protocolo AMQP (Advanced Message Queuing Protocol).
+✔️ É um message broker — ele recebe, armazena e entrega mensagens entre aplicações de forma assíncrona.
+✔️ É fundamental em arquiteturas event-driven (orientada a eventos), microservices e sistemas desacoplados.
+
+---
+
+🔥 Conceitos Fundamentais do RabbitMQ
+
+| Conceito        | Descrição                                                      |
+| --------------- | -------------------------------------------------------------- |
+| **Producer**    | Envia mensagens para o RabbitMQ.                               |
+| **Queue**       | Fila que armazena mensagens.                                   |
+| **Exchange**    | Roteia as mensagens para uma ou mais filas.                    |
+| **Routing Key** | Chave de roteamento usada pelo exchange para enviar mensagens. |
+| **Consumer**    | Lê e processa mensagens das filas.                             |
+| **Binding**     | Relação entre Exchange e Queue com base na routing key.        |
+
+🚀 Arquitetura Básica — RabbitMQ
+
+Producer → Exchange → Queue → Consumer
+
+🎯 Tipos de Exchange
+
+| Tipo        | Descrição                                                  |
+| ----------- | ---------------------------------------------------------- |
+| **direct**  | Roteia com base na routing key exata.                      |
+| **fanout**  | Ignora routing key e envia para todas as filas vinculadas. |
+| **topic**   | Usa padrões (ex.: `log.*`) para roteamento flexível.       |
+| **headers** | Roteamento baseado nos headers das mensagens.              |
+
+
+🏗️ Exemplo Prático — Producer e Consumer com RabbitMQ em Java
+
+🔧 Dependência Maven
+
+<dependency>
+    <groupId>com.rabbitmq</groupId>
+    <artifactId>amqp-client</artifactId>
+    <version>5.19.0</version>
+</dependency>
+
+
+✅ Configuração do RabbitMQ
+
+✔️ Supondo que o RabbitMQ está rodando em:
+
+- localhost
+- Porta padrão: 5672
+- Usuário: guest
+- Senha: guest
+
+🔸 Producer — Enviar Mensagens
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+public class Producer {
+
+    private static final String QUEUE_NAME = "fila_clientes";
+
+    public static void main(String[] args) throws Exception {
+        // Cria conexão com RabbitMQ
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+
+        try (Connection connection = factory.newConnection();
+             Channel channel = connection.createChannel()) {
+
+            // Declara a fila
+            channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+
+            String mensagem = "Cadastro de cliente: André Leão";
+
+            // Envia a mensagem para a fila
+            channel.basicPublish("", QUEUE_NAME, null, mensagem.getBytes());
+
+            System.out.println("🚀 Mensagem enviada: " + mensagem);
+        }
+    }
+}
+
+---
+
+🔸 Consumer — Consumir Mensagens
+
+import com.rabbitmq.client.*;
+
+import java.io.IOException;
+
+public class Consumer {
+
+    private static final String QUEUE_NAME = "fila_clientes";
+
+    public static void main(String[] args) throws Exception {
+        // Cria conexão com RabbitMQ
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+
+        // Declara a fila (garantia que existe)
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+
+        System.out.println("🕑 Aguardando mensagens...");
+
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String mensagem = new String(delivery.getBody(), "UTF-8");
+            System.out.println("📥 Mensagem recebida: " + mensagem);
+        };
+
+        channel.basicConsume(QUEUE_NAME, true, deliverCallback, consumerTag -> {});
+    }
+}
+
+✔️ Saída Esperada
+
+Producer:
+🚀 Mensagem enviada: Cadastro de cliente: André Leão
+
+Consumer:
+🕑 Aguardando mensagens...
+📥 Mensagem recebida: Cadastro de cliente: André Leão
+
+🔥 Funcionamento
+
+- O Producer conecta ao RabbitMQ e envia uma mensagem para a fila fila_clientes.
+- O Consumer escuta essa fila e processa as mensagens que chegam.
+
+🏗️ Arquitetura com Exchange (Roteamento mais avançado)
+
+🔥 Exemplo com direct exchange:
+
+✅ Producer:
+
+channel.exchangeDeclare("clientes_exchange", "direct");
+channel.queueDeclare("fila_cadastro", true, false, false, null);
+channel.queueBind("fila_cadastro", "clientes_exchange", "cadastro");
+
+String mensagem = "Novo cliente cadastrado: André";
+channel.basicPublish("clientes_exchange", "cadastro", null, mensagem.getBytes());
+
+✅ Consumer:
+
+channel.exchangeDeclare("clientes_exchange", "direct");
+channel.queueDeclare("fila_cadastro", true, false, false, null);
+channel.queueBind("fila_cadastro", "clientes_exchange", "cadastro");
+
+channel.basicConsume("fila_cadastro", true, deliverCallback, consumerTag -> {});
+
+🏆 Boas Práticas com RabbitMQ
+
+| Boas Práticas              | ✔️ Recomendações                                         |
+| -------------------------- | -------------------------------------------------------- |
+| Durabilidade das filas     | Use `durable = true` para manter filas após restart.     |
+| Mensagens persistentes     | Defina mensagens como persistentes se necessário.        |
+| Acknowledgment manual      | Para garantir processamento seguro das mensagens.        |
+| Dead Letter Exchange (DLX) | Gerenciar mensagens que falharam no processamento.       |
+| Monitoramento              | Use RabbitMQ Management Plugin para UI, logs e métricas. |
+
+
+📦 Exemplos de Uso Real RabbitMQ
+
+✅ Processamento assíncrono (ex.: geração de PDF, envio de e-mails).
+✅ Pipelines de dados.
+✅ Integração entre microsserviços.
+✅ Eventos de domínio em arquiteturas event-driven.
+✅ Fila de pedidos, pagamentos, notificações.
+

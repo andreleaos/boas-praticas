@@ -1,0 +1,203 @@
+
+Api Gateway
+
+☁️ O que é o API Gateway?
+
+- Serviço gerenciado da AWS que permite criar, publicar, monitorar e proteger APIs em escala.
+- Faz interface entre clientes (ex.: frontends, apps) e backends serverless (como Lambda), serviços HTTP ou qualquer recurso na AWS.
+
+Suporte a:
+
+- ✅ REST APIs
+ -✅ HTTP APIs (mais simples e performática)
+- ✅ WebSocket APIs
+
+🎯 Cenário Prático — API REST Serverless de Clientes
+
+| Método | Endpoint         | Ação                     | Lambda associada      |
+| ------ | ---------------- | ------------------------ | --------------------- |
+| POST   | `/clientes`      | Criar cliente            | `CreateClienteLambda` |
+| GET    | `/clientes/{id}` | Buscar cliente por ID    | `GetClienteLambda`    |
+| GET    | `/clientes`      | Listar todos os clientes | `ListClientesLambda`  |
+| PUT    | `/clientes/{id}` | Atualizar cliente        | `UpdateClienteLambda` |
+| DELETE | `/clientes/{id}` | Deletar cliente          | `DeleteClienteLambda` |
+
+🔧 Configuração do API Gateway com Lambda — Conceito
+
+✔️ Funcionamento:
+
+- O API Gateway recebe a requisição HTTP.
+- Encaminha o evento para a função Lambda correspondente.
+- Lambda processa a lógica.
+- API Gateway retorna a resposta HTTP para o cliente.
+
+🔥 Configuração Manual no Console da AWS (Passo a Passo)
+
+- ✔️ 1. Crie as Funções Lambda:
+- Uma Lambda para cada operação CRUD (Create, Read, Update, Delete).
+
+✔️ 2. Crie a API no API Gateway:
+
+- Tipo: REST API (se quiser suporte completo de transformação de payload) ou HTTP API (mais leve e performática).
+- Endpoint: /clientes
+
+✔️ 3. Configure os Métodos:
+
+| Requisição HTTP | Endpoint         | Ação                         |
+| --------------- | ---------------- | ---------------------------- |
+| **POST**        | `/clientes`      | Invoca `CreateClienteLambda` |
+| **GET**         | `/clientes/{id}` | Invoca `GetClienteLambda`    |
+| **GET**         | `/clientes`      | Invoca `ListClientesLambda`  |
+| **PUT**         | `/clientes/{id}` | Invoca `UpdateClienteLambda` |
+| **DELETE**      | `/clientes/{id}` | Invoca `DeleteClienteLambda` |
+
+✔️ 4. Integração:
+
+- Tipo: Lambda Function
+- Escolha a função Lambda correspondente.
+- Marque para usar Proxy Integration (Lambda Proxy) → envia o evento completo em formato JSON para a Lambda.
+
+✔️ 5. Deployment:
+
+- Crie um estágio, exemplo: dev.
+- Publique a API (Actions > Deploy API).
+
+📜 Formato do Evento JSON recebido pela Lambda via API Gateway Proxy
+
+{
+  "resource": "/clientes/{id}",
+  "path": "/clientes/123",
+  "httpMethod": "GET",
+  "headers": { ... },
+  "queryStringParameters": null,
+  "pathParameters": { "id": "123" },
+  "body": null,
+  "isBase64Encoded": false
+}
+
+🏗️ Exemplo de Lambda — GetClienteLambda
+
+package br.com.lambda;
+
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
+import java.util.Map;
+
+public class GetClienteLambda implements RequestHandler<Map<String, Object>, ApiGatewayResponse> {
+
+    @Override
+    public ApiGatewayResponse handleRequest(Map<String, Object> input, Context context) {
+        Map<String, String> pathParameters = (Map<String, String>) input.get("pathParameters");
+        String id = pathParameters.get("id");
+
+        context.getLogger().log("Buscando cliente com ID: " + id);
+
+        String responseBody = "{ \"id\": \"" + id + "\", \"nome\": \"André Leão\", \"email\": \"andre@email.com\" }";
+
+        return ApiGatewayResponse.builder()
+                .setStatusCode(200)
+                .setObjectBody(responseBody)
+                .build();
+    }
+}
+
+✔️ Com um helper para Response:
+
+package br.com.lambda;
+
+import java.util.Collections;
+import java.util.Map;
+
+public class ApiGatewayResponse {
+    private final int statusCode;
+    private final String body;
+
+    private ApiGatewayResponse(int statusCode, String body) {
+        this.statusCode = statusCode;
+        this.body = body;
+    }
+
+    public int getStatusCode() { return statusCode; }
+    public String getBody() { return body; }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private int statusCode;
+        private String body;
+
+        public Builder setStatusCode(int statusCode) {
+            this.statusCode = statusCode;
+            return this;
+        }
+
+        public Builder setObjectBody(String body) {
+            this.body = body;
+            return this;
+        }
+
+        public ApiGatewayResponse build() {
+            return new ApiGatewayResponse(statusCode, body);
+        }
+    }
+}
+
+---
+
+🚀 Infraestrutura como Código — Exemplo com Terraform
+
+resource "aws_api_gateway_rest_api" "clientes_api" {
+  name = "ClientesAPI"
+}
+
+resource "aws_api_gateway_resource" "clientes" {
+  rest_api_id = aws_api_gateway_rest_api.clientes_api.id
+  parent_id   = aws_api_gateway_rest_api.clientes_api.root_resource_id
+  path_part   = "clientes"
+}
+
+resource "aws_api_gateway_method" "post_clientes" {
+  rest_api_id   = aws_api_gateway_rest_api.clientes_api.id
+  resource_id   = aws_api_gateway_resource.clientes.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "post_clientes" {
+  rest_api_id = aws_api_gateway_rest_api.clientes_api.id
+  resource_id = aws_api_gateway_resource.clientes.id
+  http_method = aws_api_gateway_method.post_clientes.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.create_cliente.invoke_arn
+}
+
+✔️ Este exemplo configura a rota /clientes para o método POST e integra com uma Lambda chamada create_cliente.
+
+---
+
+🔥 Resumo Visual — Arquitetura
+
+(Client) → API Gateway  → Lambda (CreateCliente)
+                        → Lambda (GetCliente)
+                        → Lambda (ListClientes)
+                        → Lambda (UpdateCliente)
+                        → Lambda (DeleteCliente)
+
+----
+
+🏆 Boas Práticas com API Gateway + Lambda
+
+| Boas Práticas              | ✔️ Recomendação                                     |
+| -------------------------- | --------------------------------------------------- |
+| Mapeamento de erros        | Configure modelos de resposta para erros HTTP       |
+| Segurança                  | Use Auth (IAM, Lambda Authorizer ou Cognito)        |
+| Rate limiting / Throttling | Configure limites de chamadas                       |
+| Logging                    | API Gateway + Lambda envia logs para CloudWatch     |
+| Deploy                     | Use Terraform, AWS SAM, CDK ou Serverless Framework |
+
+
